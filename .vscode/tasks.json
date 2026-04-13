@@ -27,6 +27,7 @@
             "args": [
                 "/c",
                 "start",
+                "\"\"",
                 "cmd",
                 "/k",
                 "D:/programas/JuegoRPG/reino.exe"

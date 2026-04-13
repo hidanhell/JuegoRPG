@@ -38,7 +38,7 @@ int main() {
     cout << "Junto a la cama descansa un cofre polvoriento, y frente a ti la puerta." << endl;
 
     cout << "\n¿Quieres abrir el cofre antes de salir? (S/N): ";
-cout << "\n¿Quieres abrir el cofre antes de salir? (S/N): ";
+
 char decision; cin >> decision;
 
 Arma inicial = {"", 0};  

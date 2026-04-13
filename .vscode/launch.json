@@ -16,11 +16,11 @@
       "name": "C/C++ Runner: Debug Session",
       "type": "cppdbg",
       "request": "launch",
+      "program": "D:/programas/JuegoRPG/build/Debug/outDebug.exe",
       "args": [],
       "stopAtEntry": false,
+      "cwd": "D:/programas/JuegoRPG",
       "externalConsole": true,
-      "cwd": "d:/programas/JuegoRPG",
-      "program": "d:/programas/JuegoRPG/build/Debug/outDebug",
       "MIMode": "gdb",
       "miDebuggerPath": "gdb",
       "setupCommands": [
