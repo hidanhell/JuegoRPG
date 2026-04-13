@@ -8,8 +8,9 @@ using namespace std;
 // BLOQUE M2: LOOT Y MUNDO (v1.18)
 // =========================================================
 
+//Funcion que genera el loot
 void gestionarLoot(Personaje &p, int y, bool raro) {
-    int z = (y <= 60) ? 1 : (y <= 90) ? 2 : (y <= 120) ? 3 : 4;
+    int z = (y <= 60) ? 1 : (y <= 120) ? 2 : (y <= 180) ? 3 : 4;
 
     // --- SISTEMA DE POCIONES (por zona + reliquias) ---
     if ((rand() % 100) < (raro ? 20 : 20)) { // 20% probabilidad para todos
@@ -27,7 +28,7 @@ void gestionarLoot(Personaje &p, int y, bool raro) {
                         "Colmillo de Vampiro","Pluma del Fénix",
                         "Medallón del Guardián","Llave del Pueblo","Anillo del Asesino"
                     };
-                    string reliquia = reliquiasPosibles[rand() % reliquiasPosibles.size()];
+                    string reliquia = reliquiasPosibles[static_cast<size_t>(rand()) % reliquiasPosibles.size()];
                     p.reliquias.push_back(reliquia);
                     cout << "[RELIQUIA] ¡Has encontrado " << reliquia << "!" << endl;
                     if (reliquia == "Anillo del Asesino") { p.bonusCritico += 5; cout << "[BONUS] Crítico +5%." << endl; }
@@ -94,7 +95,7 @@ void gestionarLoot(Personaje &p, int y, bool raro) {
 
         if (raro) {
             nW.nombre += "+";
-            nW.atk = (int)(nW.atk * 1.15f);
+            nW.atk = static_cast<int>(static_cast<float>(nW.atk) * 1.15f + 0.5f);
         }
 
         if (nW.atk > p.armaEquipada.atk) {
@@ -108,9 +109,9 @@ void gestionarLoot(Personaje &p, int y, bool raro) {
 // --- Zonas del Juego ---
 string obtenerNombreZona(int y) {
     if (y <= 60) return "Aldea en las Sombras";
-    if (y <= 90) return "Bosque Obscuro";
-    if (y <= 120) return "Pantano Siniestro";
-    if (y < 150) return "Tierra Desolada";
+    if (y <= 120) return "Bosque Obscuro";
+    if (y <= 180) return "Pantano Siniestro";
+    if (y < 240) return "Tierra Desolada";
     return "Castillo Abandonado";
 }
 
@@ -121,13 +122,13 @@ void lanzarDialogoAmbiental(int y) {
         if (y <= 60) {
             string f[] = {"Las ventanas de la aldea estan selladas...", "Sientes ojos observandote tras las cortinas.", "El aire huele a madera vieja y miedo."};
             cout << f[rand()%3] << endl;
-        } else if (y <= 90) {
+        } else if (y <= 120) {
             string f[] = {"El crujir de las ramas suena como huesos.", "Una niebla espesa cubre tus botas.", "Algo se movio rapido entre los pinos..."};
             cout << f[rand()%3] << endl;
-        } else if (y <= 120) {
+        } else if (y <= 180) {
             string f[] = {"El lodo burbujea con un sonido extraño.", "Susurros lejanos parecen decir tu nombre...", "Cada paso pesa mas en este fango."};
             cout << f[rand()%3] << endl;
-        } else if (y < 150) {
+        } else if (y < 240) {
             string f[] = {"Ceniza volcanica cae del cielo gris.", "Un calor antinatural emana del suelo.", "El Castillo se alza imponente frente a ti."};
             cout << f[rand()%3] << endl;
         }

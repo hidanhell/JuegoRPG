@@ -8,7 +8,7 @@
       "program": "D:/programas/JuegoRPG/reino.exe",
       "args": [],
       "cwd": "D:/programas/JuegoRPG",
-      "console": "integratedTerminal",
+      "console": "externalTerminal",
       "MIMode": "gdb",
       "miDebuggerPath": "D:/mingw64/bin/gdb.exe"
     },

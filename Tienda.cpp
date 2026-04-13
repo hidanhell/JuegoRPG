@@ -9,6 +9,8 @@ using namespace std;
 // BLOQUE M3: SISTEMA DE TIENDA (v1.18)
 // =========================================================
 
+
+//Funcion para entrar a la tienda
 void entrarTienda(Personaje &p) {
     bool enMenu = true;
 
@@ -83,8 +85,8 @@ void entrarTienda(Personaje &p) {
             cout << idx << ". Cancelar" << endl;
             int venta; cin >> venta;
             if (venta > 0 && venta < idx) {
-                string elegido = opcionesVenta[venta-1].first;
-                int precio = opcionesVenta[venta-1].second;
+                string elegido = opcionesVenta[static_cast<size_t>(venta-1)].first;
+                int precio = opcionesVenta[static_cast<size_t>(venta-1)].second;
 
                 auto itInv = find(p.inventario.begin(), p.inventario.end(), elegido);
                 if (itInv != p.inventario.end()) p.inventario.erase(itInv);

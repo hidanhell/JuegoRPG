@@ -5,8 +5,11 @@
 #include "Utilidades.h"
 using namespace std;
 
-// BLOQUE M4: PERSONAJES
+// =========================================================
+// BLOQUE 4: Personajes
+// =========================================================
 
+//inicio del personaje
 Personaje::Personaje(string n, int tipo) {
     nombre = n; nivel = 1; exp = 0; posX = 0; posY = 0; oro = 10;
     escudoEquipado = {"Ninguno", 0};
@@ -27,6 +30,7 @@ Personaje::Personaje(string n, int tipo) {
     hp = hpMax;
 }
 
+// determina si un personaje tiene una reliquia o no
 bool Personaje::tieneReliquia(const string &r) {
     for (auto &rel : reliquias) {
         if (rel == r) return true;
@@ -34,6 +38,7 @@ bool Personaje::tieneReliquia(const string &r) {
     return false;
 }
 
+// Es el sistema de autopociones
 void Personaje::usarPocionAuto() {
     if (inventario.empty()) return;
     int idx = -1;
@@ -45,16 +50,18 @@ void Personaje::usarPocionAuto() {
     }
 
     if (idx != -1) {
-        string pNom = inventario[idx];
+        string pNom = inventario[static_cast<size_t>(idx)];
         float mod = (pNom == "Pocion Alta") ? 0.9f : (pNom == "Pocion Media") ? 0.6f : 0.3f;
-        int heal = (int)(hpMax * mod);
+        int heal = static_cast<int>(static_cast<float>(hpMax) * mod + 0.5f);  // Usa solo esta línea
         hp = min(hpMax, hp + heal);
-        inventario.erase(inventario.begin() + idx);
         cout << "\n[SISTEMA] ¡Uso automatico de " << pNom << "! Recuperaste " << heal << " HP." << endl;
         cout << "[SISTEMA] HP actual: " << hp << "/" << hpMax << endl;
+        inventario.erase(inventario.begin() + idx);
     }
 }
 
+
+//Funcion para subir de nivel
 void Personaje::subirNivel() {
     int expNecesaria = nivel * 50;
     while (exp >= expNecesaria) {
@@ -72,6 +79,8 @@ void Personaje::subirNivel() {
         cout << "----------------------------------------" << endl;
     }
 }
+
+//Funcion para reaparecer por si te matan
 
 void Personaje::reaparecer() {
     cout << "\n****************************************" << endl;

@@ -6,19 +6,37 @@
             "type": "shell",
             "command": "g++",
             "args": [
-    "Motor.cpp",
-    "Combate.cpp",
-    "Personajes.cpp",
-    "Loot.cpp",
-    "Tienda.cpp",
-    "Utilidades.cpp",
-    "-o",
-    "D:/programas/JuegoRPG/reino.exe"
-]
-,
+                "Motor.cpp",
+                "Combate.cpp",
+                "Personajes.cpp",
+                "Loot.cpp",
+                "Tienda.cpp",
+                "Utilidades.cpp",
+                "-o",
+                "D:/programas/JuegoRPG/reino.exe"
+            ],
             "group": {
                 "kind": "build",
                 "isDefault": true
+            }
+        },
+        {
+            "label": "run",
+            "type": "shell",
+            "command": "cmd",
+            "args": [
+                "/c",
+                "start",
+                "cmd",
+                "/k",
+                "D:/programas/JuegoRPG/reino.exe"
+            ],
+            "dependsOn": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "never",
+                "focus": false,
+                "panel": "shared"
             }
         }
     ]
