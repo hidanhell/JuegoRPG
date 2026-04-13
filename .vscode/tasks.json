@@ -1,0 +1,25 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "build",
+            "type": "shell",
+            "command": "g++",
+            "args": [
+    "Motor.cpp",
+    "Combate.cpp",
+    "Personajes.cpp",
+    "Loot.cpp",
+    "Tienda.cpp",
+    "Utilidades.cpp",
+    "-o",
+    "D:/programas/JuegoRPG/reino.exe"
+]
+,
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        }
+    ]
+}
