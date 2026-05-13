@@ -93,7 +93,7 @@ O usar el archivo `Run.bat` incluido en Windows.
 | Sistema de combate | ✅ Completo |
 | Árbol de habilidades | ✅ Completo (hasta nivel 15) |
 | Zonas 1-4 + Jefe final | ✅ Completo |
-| Arzobispo Veldrame | 🔧 En desarrollo |
+| Arzobispo Veldrame | ✅ Completo |
 | Nzz'gorah | 🔧 Pendiente |
 | Habilidades nivel 20 | 🔧 Pendiente |
 | Sistema de rareza Elite | 🔧 Pendiente |

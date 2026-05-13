@@ -13,5 +13,6 @@ std::vector<Reliquia> listaReliquias = {
     {206, "Pluma del Viento",     "Destreza +8 (Solo Cazador)",        "Raro"},
     {207, "Botas del Relampago",  "Velocidad +10",                     "Comun"},
     {208, "Amuleto de Sangre",    "20% chance de contraatacar x10 dano","Epico"},
-    {209, "Piedra del Alma",      "Oro ganado por combate +25%",       "Raro"}
+    {209, "Piedra del Alma",      "Oro ganado por combate +25%",       "Raro"},
+    {210, "Calavera de Valdrame", "Senor de los Muertos: absorves 5% HP del enemigo cada turno permanentemente", "Epico"},
 };

@@ -16,26 +16,25 @@ struct Habilidad {
     std::string descripcion;
     int poderBase;
     int duracion;
-    std::string tipo;   // "Pasiva" o "Activa"
+    std::string tipo;   // "Pasiva", "Activa", "Ultimate", "ArmaElite"
     int efectoId;       // ID del efecto en listaEfectos (0 si no aplica)
 };
 
 // ==========================
-// CATÁLOGO GLOBAL DE HABILIDADES
+// CATÁLOGO GLOBAL
 // ==========================
 extern std::vector<Habilidad> listaHabilidadesGlobal;
 
 // ==========================
-// FUNCIONES DE HABILIDADES
+// FUNCIONES
 // ==========================
-
-// Buscar habilidad por ID
 Habilidad obtenerHabilidadPorId(int id);
-
-// Ejecutar habilidad activa en combate
 void ejecutarHabilidad(Personaje &pj, Monstruo &m, int idHabilidad);
-
-// Aplicar subclase (nivel 15, pasivas permanentes)
 void aplicarSubclase(Personaje &pj, int idHabilidad);
+
+// ==========================
+// HABILIDADES DE ARMAS ELITE
+// ==========================
+void aplicarGritoDelCaido(Monstruo& m, Personaje& p);
 
 #endif

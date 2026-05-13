@@ -1,7 +1,6 @@
 {
   "version": "0.2.0",
   "configurations": [
-
     {
       "name": "Run RPG",
       "type": "cppdbg",
@@ -11,7 +10,14 @@
       "cwd": "D:/programas/JuegoRPG",
       "console": "externalTerminal",
       "MIMode": "gdb",
-      "miDebuggerPath": "D:/programas/JuegoRPG/Reino.exe"
+      "miDebuggerPath": "C:/MinGW/bin/gdb.exe",
+      "setupCommands": [
+        {
+          "description": "Enable pretty-printing for gdb",
+          "text": "-enable-pretty-printing",
+          "ignoreFailures": true
+        }
+      ]
     },
     {
       "name": "C/C++ Runner: Debug Session",

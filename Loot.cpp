@@ -3,7 +3,8 @@
 #include "Artefactos.h"
 #include "Reliquias.h"
 #include "Utilidades.h"
-#include "catalogoObjetos.h"  
+#include "catalogoObjetos.h"
+#include "Habilidades.h"
 #include <iostream>
 #include <cstdlib>
 #include <vector>
@@ -13,15 +14,15 @@
 using namespace std;
 
 // =========================================================
-// BLOQUE M2: LOOT Y MUNDO (v1.31)
+// BLOQUE M2: LOOT Y MUNDO (v1.32)
 // =========================================================
 
-void gestionarLoot(Personaje &p, int y, bool raro) 
+void gestionarLoot(Personaje &p, int y, bool raro)
 {
     int z = (y <= 60) ? 1 : (y <= 120) ? 2 : (y <= 180) ? 3 : 4;
 
     // --- SISTEMA DE CONSUMIBLES ---
-    if ((rand() % 100) < 25) { 
+    if ((rand() % 100) < 25) {
         if (p.inventario.size() < 10u) {
             std::vector<Consumible> posibles;
             for (const auto& item : listaConsumibles) {
@@ -37,7 +38,7 @@ void gestionarLoot(Personaje &p, int y, bool raro)
                 int index = rand() % static_cast<int>(posibles.size());
                 Consumible lootObtenido = posibles[static_cast<size_t>(index)];
                 p.inventario.push_back(lootObtenido);
-                
+
                 if (lootObtenido.id >= 10) {
                     cout << "[LOOT] ¡ELIXIR ESPECIAL! " << lootObtenido.nombre << " obtenido." << endl;
                     cout << " -> " << lootObtenido.descripcion << endl;
@@ -50,7 +51,7 @@ void gestionarLoot(Personaje &p, int y, bool raro)
 
     // --- SISTEMA DE ARMAS ---
     int sArma = rand() % 100 + 1;
-    Arma nW(0, "-", 0, "Ninguno", 0, "Ninguno", 0, 0); 
+    Arma nW(0, "-", 0, "Ninguno", 0, "Ninguno", 0, 0, 0);
     float m = raro ? 1.2f : 1.0f;
 
     if (sArma <= 40) {
@@ -75,12 +76,13 @@ void gestionarLoot(Personaje &p, int y, bool raro)
                 nW.poder = static_cast<int>(static_cast<float>(nW.poder) * 1.15f + 0.5f);
             }
 
-            if (nW.poder > p.armaEquipada.poder) {
-                cout << "[!] HALLAZGO: " << nW.nombre 
-                     << " (Poder: " << nW.poder << ") Equipar? (S/N): ";
-                char c; cin >> c;
-                if (tolower(c) == 's') p.armaEquipada = nW;
-            }
+            cout << "[!] HALLAZGO: " << nW.nombre
+                 << " (Poder: " << nW.poder << ")"
+                 << " [Equipada: " << p.armaEquipada.nombre
+                 << " - " << p.armaEquipada.poder << "]" << endl;
+            cout << "Equipar? (S/N): ";
+            char c; cin >> c;
+            if (tolower(c) == 's') p.armaEquipada = nW;
         }
     }
 
@@ -90,8 +92,8 @@ void gestionarLoot(Personaje &p, int y, bool raro)
         if (sArtefacto <= 30) {
             cout << "\n[!] Viste un artefacto entre los restos, pero como Berserker prefieres tus manos libres." << endl;
         }
-    } 
-    else { 
+    }
+    else {
         int sArtefacto = rand() % 100 + 1;
         Artefacto nA(0, "-", 0, "Ninguno", 0, "Ninguno", 0, 0);
         float mA = raro ? 1.2f : 1.0f;
@@ -118,17 +120,15 @@ void gestionarLoot(Personaje &p, int y, bool raro)
                     nA.defensa = static_cast<int>(static_cast<float>(nA.defensa) * 1.15f + 0.5f);
                 }
 
-                if (nA.defensa > p.artefactoEquipado.defensa) {
-                    cout << "[!] HALLAZGO: " << nA.nombre 
-                         << " (Def: +" << nA.defensa << ") Equipar? (S/N): ";
-                    char c; cin >> c;
-                    if (tolower(c) == 's') {
-                        p.artefactoEquipado = nA;
-                        cout << "Has equipado el nuevo artefacto.\n";
-                    }
-                } else {
-                    cout << "[!] Artefacto encontrado (" << nA.nombre 
-                         << ") descartado automaticamente.\n";
+                cout << "[!] HALLAZGO: " << nA.nombre
+                     << " (Def: +" << nA.defensa << ")"
+                     << " [Equipado: " << p.artefactoEquipado.nombre
+                     << " - " << p.artefactoEquipado.defensa << "]" << endl;
+                cout << "Equipar? (S/N): ";
+                char c; cin >> c;
+                if (tolower(c) == 's') {
+                    p.artefactoEquipado = nA;
+                    cout << "Has equipado el nuevo artefacto.\n";
                 }
             }
         }
@@ -137,7 +137,6 @@ void gestionarLoot(Personaje &p, int y, bool raro)
     // --- SISTEMA DE RELIQUIAS ---
     if ((rand() % 100) < 15 && p.reliquias.size() < 2) {
 
-        // Filtramos reliquias que el jugador aún no tiene
         std::vector<Reliquia> posibles;
         for (const auto& rel : listaReliquias) {
             bool yaTiene = false;
@@ -152,7 +151,6 @@ void gestionarLoot(Personaje &p, int y, bool raro)
             p.reliquias.push_back(r.nombre);
             cout << "[RELIQUIA] Has encontrado " << r.nombre << "! (" << r.efecto << ")" << endl;
 
-            // Aplicar efectos inmediatos
             if (r.nombre == "Anillo del Asesino") {
                 p.bonusCritico += 10;
                 cout << "[BONUS] Critico +10%." << endl;
@@ -176,23 +174,120 @@ void gestionarLoot(Personaje &p, int y, bool raro)
                 cout << "[BONUS] Velocidad +15." << endl;
             } else if (r.nombre == "Piedra del Alma") {
                 cout << "[BONUS] Oro ganado por combate +25%." << endl;
-                // El bonus se aplica en combate.cpp al calcular oroGanado
             } else if (r.nombre == "Amuleto de Sangre") {
                 cout << "[BONUS] Activo: 20% de contraatacar al recibir dano." << endl;
-                // La lógica de contraataque se aplica en combate.cpp
+            } else if (r.nombre == "Calavera de Valdrame") {
+                cout << "[BONUS] Senor de los Muertos: Absorves 5% HP del enemigo cada turno." << endl;
             }
         }
     }
 }
 
+// =========================================================
+// LOOT EXCLUSIVO DEL ARZOBISPO VALDRAME (v1.32)
+// - Siempre cae un arma Elite de tu clase
+// - El arma Elite tiene efectoId 4 (paralisis) y habilidadId 301 (Grito del Caido)
+// - 15% de probabilidad de soltar la Calavera de Valdrame
+// =========================================================
+void gestionarLootValdrame(Personaje& p) {
+    cout << "\n[LOOT ESPECIAL] Entre las cenizas del Arzobispo encuentras algo..." << endl;
+
+    // --- ARMA ELITE (siempre cae, de tu clase) ---
+    std::vector<Arma> posibles;
+    for (const auto& arma : listaArmas) {
+        if (arma.rareza == "Elite" && arma.clase == p.clase) {
+            posibles.push_back(arma);
+        }
+    }
+
+    if (!posibles.empty()) {
+        Arma nW = posibles[static_cast<size_t>(rand()) % posibles.size()];
+
+        cout << "\n========================================" << endl;
+        cout << "  *** ARMA ELITE: " << nW.nombre << " ***" << endl;
+        cout << "  Poder  : " << nW.poder << endl;
+        cout << "  Rareza : " << nW.rareza << endl;
+
+        // Mostrar efecto de estado
+        if (nW.efectoId != 0) {
+            cout << "  Efecto : ID " << nW.efectoId << " (Paralisis al golpear)" << endl;
+        }
+
+        // Mostrar habilidad especial del arma
+        if (nW.habilidadId != 0) {
+            Habilidad hab = obtenerHabilidadPorId(nW.habilidadId);
+            cout << "  Habilidad especial [" << hab.nombre << "]:" << endl;
+            cout << "    -> " << hab.descripcion << endl;
+            cout << "    (Se activa automaticamente al realizar un golpe critico)" << endl;
+        }
+
+        cout << "  [Equipada: " << p.armaEquipada.nombre
+             << " - Poder " << p.armaEquipada.poder << "]" << endl;
+        cout << "========================================" << endl;
+
+        cout << "Equipar? (S/N): ";
+        char c; cin >> c;
+        if (tolower(c) == 's') {
+            p.armaEquipada = nW;
+            cout << "[OK] " << nW.nombre << " equipada." << endl;
+            if (nW.habilidadId != 0) {
+                Habilidad hab = obtenerHabilidadPorId(nW.habilidadId);
+                cout << "[HABILIDAD] " << hab.nombre << " ahora esta activa en tu arma." << endl;
+            }
+        }
+    }
+
+   // --- RELIQUIA: CALAVERA DE VALDRAME (siempre cae en este bloque) ---
+std::string calavera = "Calavera de Valdrame";
+
+bool yaTiene = false;
+for (const auto& r : p.reliquias) {
+    if (r == calavera) { yaTiene = true; break; }
+}
+
+if (!yaTiene) {
+    if (p.reliquias.size() < 2u) {
+        p.reliquias.push_back(calavera);
+        std::cout << "\n[RELIQUIA EPICA] Has obtenido la CALAVERA DE VALDRAME!" << std::endl;
+        std::cout << " -> Señor de los Muertos: Absorbes 5% HP del enemigo cada turno." << std::endl;
+    } else {
+        std::cout << "\n[RELIQUIA EPICA] Has encontrado la CALAVERA DE VALDRAME!" << std::endl;
+        std::cout << " -> Señor de los Muertos: Absorbes 5% HP del enemigo cada turno." << std::endl;
+        std::cout << "\nYa tienes el máximo de reliquias equipadas." << std::endl;
+        std::cout << "¿Quieres reemplazar una de tus reliquias actuales por la Calavera de Valdrame? (s/n): ";
+
+        char opcion;
+        std::cin >> opcion;
+        if (opcion == 's' || opcion == 'S') {
+            std::cout << "Elige cuál reliquia quieres reemplazar:" << std::endl;
+            for (size_t i = 0; i < p.reliquias.size(); ++i) {
+                std::cout << i+1 << ") " << p.reliquias[i] << std::endl;
+            }
+            size_t idx;
+            std::cin >> idx;
+            if (idx >= 1 && idx <= p.reliquias.size()) {
+                p.reliquias[idx-1] = calavera;
+                std::cout << "\nHas equipado la CALAVERA DE VALDRAME en lugar de tu reliquia anterior." << std::endl;
+            } else {
+                std::cout << "Selección inválida. No se reemplazó ninguna reliquia." << std::endl;
+            }
+        } else {
+            std::cout << "Has decidido no equipar la Calavera de Valdrame." << std::endl;
+        }
+    }
+}
+
+
+}
+
 // --- NOMBRES DE ZONA ---
-string obtenerNombreZona(int y) 
+string obtenerNombreZona(int y)
 {
     if (y <= 60) return "Aldea en las Sombras";
     if (y <= 120) return "Bosque Obscuro";
     if (y <= 180) return "Pantano Siniestro";
     if (y <= 240) return "Tierra Desolada";
-    return "Castillo Abandonado"; 
+    return "Castillo Abandonado";
 }
 
 // --- DIÁLOGOS AMBIENTALES ---
@@ -211,10 +306,10 @@ void lanzarDialogoAmbiental(int y) {
         } else if (y <= 240) {
             string f[] = {"Ceniza volcanica cae del cielo gris.", "Un calor antinatural emana del suelo.", "El Castillo se alza imponente frente a ti."};
             cout << f[rand()%3] << endl;
-        } else { 
+        } else {
             string f[] = {
-                "El eco de tus pasos retumba en los salones vacios.", 
-                "Las estatuas de dragones parecen seguirte con la mirada.", 
+                "El eco de tus pasos retumba en los salones vacios.",
+                "Las estatuas de dragones parecen seguirte con la mirada.",
                 "Sientes una presion inmensa en el pecho... el Rey esta cerca.",
                 "El frio del castillo cala hasta tus huesos, a pesar del fuego exterior."
             };

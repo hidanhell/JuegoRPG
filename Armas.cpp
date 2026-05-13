@@ -5,21 +5,19 @@
 using namespace std;
 
 // --- Constructor ---
-// 'precio(pr)' incluido en la lista de inicializacion
-// eId == -1 es la senal para asignar efecto aleatorio a armas Raras
-Arma::Arma(int i, const string& n, int p, const string& r, int eId, const string& c, int z, int pr) 
-    : id(i), nombre(n), poder(p), rareza(r), efectoId(eId), clase(c), zona(z), precio(pr) {
-    
+// hId = 0 por defecto (sin habilidad). Solo armas Elite llevan hId != 0.
+// eId == -1 activa efecto aleatorio para armas Raras.
+Arma::Arma(int i, const string& n, int p, const string& r, int eId, const string& c, int z, int pr, int hId)
+    : id(i), nombre(n), poder(p), rareza(r), efectoId(eId), clase(c), zona(z), precio(pr), habilidadId(hId) {
+
     // Logica de automatizacion para Armas Raras
     // NOTA: Solo se activa si se pasa eId == -1 explicitamente al crear el arma
     if (rareza == "Raro" && eId == -1) {
         static std::random_device rd;
         static std::mt19937 gen(rd());
         std::uniform_int_distribution<> dis(1, 5);
-        
         efectoId = dis(gen);
     }
-    // No hace falta el else porque efectoId ya se inicializo con eId en la lista de arriba
 }
 
 void Arma::mostrarInfo() const {
@@ -36,6 +34,10 @@ void Arma::mostrarInfo() const {
     } else {
         cout << " | EfectoID: " << efectoId;
     }
-    
+
+    if (habilidadId != 0) {
+        cout << " | HabilidadID: " << habilidadId << " [ARMA ELITE]";
+    }
+
     cout << endl;
 }

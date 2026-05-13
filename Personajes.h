@@ -39,9 +39,15 @@ struct Personaje {
     vector<int> habilidadesIds; // IDs de habilidades que el personaje ha aprendido
 
     // --- Flags de progresion ---
-    bool tieneHabilidad10 = false;   // Controla desbloqueo de nivel 10
-    bool tieneSubclase15 = false;    // NUEVO: Controla desbloqueo de subclase nivel 15
-    bool esBerserker = false;        // Modo berserker para el Guerrero al nivel 15
+    bool tieneHabilidad10  = false;  // Controla desbloqueo de nivel 10
+    bool tieneSubclase15   = false;  // Controla desbloqueo de subclase nivel 15
+    bool tieneUltimate20   = false;  // Controla desbloqueo de ultimate nivel 20
+    bool esBerserker       = false;  // Modo berserker para el Guerrero al nivel 15
+
+    // --- Flags de combate para Ultimates (nivel 20) ---
+    bool ultimoTurnoAtaco       = false; // Flecha del Juicio Final (321): requiere haber atacado el turno anterior
+    int  turnosAgotado          = 0;     // Colapso Solar (311): bloquea usar habilidades N turnos
+    int  turnosEscudoCompanero  = 0;     // Pacto de Sangre (322): companero absorbe el proximo golpe
 
     // --- Funciones Principales ---
     Personaje(string n, int tipo);
@@ -50,8 +56,5 @@ struct Personaje {
     void usarPocionAuto(); // Logica de supervivencia automatica
     void subirNivel();     // Escalado automatico de atributos y desbloqueo de habilidades
     void reaparecer();     // Reset al morir (vuelve a la aldea)
-    
-    // --- NUEVO METODO DE RPG ---
-    // Recalcula HP Maximo, Ataque, Velocidad y Critico basandose en STR, DEX, INT y VIT
-    void actualizarEstadisticas();
+    void actualizarEstadisticas(); // Recalcula HP Maximo, Ataque, Velocidad y Critico
 };
