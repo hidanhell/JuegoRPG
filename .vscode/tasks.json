@@ -13,7 +13,7 @@
                 "Tienda.cpp",
                 "Utilidades.cpp",
                 "-o",
-                "D:/programas/JuegoRPG/reino.exe"
+                "D:/programas/JuegoRPG/Reino.exe"
             ],
             "group": {
                 "kind": "build",
@@ -30,7 +30,7 @@
                 "\"\"",
                 "cmd",
                 "/k",
-                "D:/programas/JuegoRPG/reino.exe"
+                "D:/programas/JuegoRPG/Reino.exe"
             ],
             "dependsOn": "build",
             "presentation": {

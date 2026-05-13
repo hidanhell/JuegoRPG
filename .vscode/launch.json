@@ -1,26 +1,27 @@
 {
   "version": "0.2.0",
   "configurations": [
+
     {
       "name": "Run RPG",
       "type": "cppdbg",
       "request": "launch",
-      "program": "D:/programas/JuegoRPG/reino.exe",
+      "program": "D:/programas/JuegoRPG/Reino.exe",
       "args": [],
       "cwd": "D:/programas/JuegoRPG",
       "console": "externalTerminal",
       "MIMode": "gdb",
-      "miDebuggerPath": "D:/mingw64/bin/gdb.exe"
+      "miDebuggerPath": "D:/programas/JuegoRPG/Reino.exe"
     },
     {
       "name": "C/C++ Runner: Debug Session",
       "type": "cppdbg",
       "request": "launch",
-      "program": "D:/programas/JuegoRPG/build/Debug/outDebug.exe",
       "args": [],
       "stopAtEntry": false,
-      "cwd": "D:/programas/JuegoRPG",
       "externalConsole": true,
+      "cwd": "d:/programas/JuegoRPG",
+      "program": "d:/programas/JuegoRPG/build/Debug/outDebug",
       "MIMode": "gdb",
       "miDebuggerPath": "gdb",
       "setupCommands": [

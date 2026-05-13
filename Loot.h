@@ -1,10 +1,7 @@
 #pragma once
 #include "personajes.h"
-
-// =========================================================
-// BLOQUE M2: LOOT Y MUNDO (v1.18)
-// =========================================================
+#include <string>
 
 void gestionarLoot(Personaje &p, int y, bool raro);
-string obtenerNombreZona(int y);
+std::string obtenerNombreZona(int y);
 void lanzarDialogoAmbiental(int y);

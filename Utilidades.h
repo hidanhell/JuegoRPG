@@ -5,7 +5,8 @@
 using namespace std;
 
 void mostrarBarraHP(int hp, int hpMax);
-void mostrarCabecera(string titulo);
+void mostrarCabecera(const std::string &titulo);
 void limpiarBuffer();
+char aMinuscula(char c);
 
 #endif

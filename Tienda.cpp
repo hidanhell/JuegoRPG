@@ -1,18 +1,25 @@
 #include "tienda.h"
 #include "utilidades.h"
+#include "Armas.h"
+#include "Artefactos.h"
+#include "Reliquias.h"
 #include <iostream>
 #include <algorithm>
 #include <vector>
+#include <cstdlib>
+#include <ctime>
+#include "catalogoObjetos.h"
+#include "Consumibles.h"      
+
 using namespace std;
 
 // =========================================================
-// BLOQUE M3: SISTEMA DE TIENDA (v1.18)
+// BLOQUE M3: SISTEMA DE TIENDA (v2.1)
 // =========================================================
 
-
-//Funcion para entrar a la tienda
 void entrarTienda(Personaje &p) {
     bool enMenu = true;
+    srand((unsigned)time(nullptr));
 
     while (enMenu) {
         system("cls");
@@ -22,7 +29,7 @@ void entrarTienda(Personaje &p) {
              << " | Bolsa: " << p.inventario.size() << "/10 consumibles"
              << " | Reliquias: " << p.reliquias.size() << "/2" << endl;
         cout << "----------------------------------------" << endl;
-        cout << "¿Qué deseas hacer?" << endl;
+        cout << "Que deseas hacer?" << endl;
         cout << "1. Comprar" << endl;
         cout << "2. Vender" << endl;
         cout << "3. Salir" << endl;
@@ -30,77 +37,203 @@ void entrarTienda(Personaje &p) {
 
         int opcion; cin >> opcion;
 
-        // --- COMPRAR ---
-        if (opcion == 1) {
-            cout << "\n--- OBJETOS DISPONIBLES ---" << endl;
-            cout << "1. Pocion Baja (200 oro) [Cura 30%]" << endl;
-            cout << "2. Pocion Media (400 oro) [Cura 60%]" << endl;
-            cout << "3. Pocion Alta (1200 oro) [Cura 90%]" << endl;
-            cout << "4. Colmillo de Vampiro (2500 oro) [Roba vida 5%]" << endl;
-            cout << "5. Pluma del Fénix (3000 oro) [Revive una vez]" << endl;
-            cout << "6. Medallón del Guardián (2200 oro) [+10 defensa]" << endl;
-            cout << "7. Llave del Pueblo (1500 oro) [Teleporta a Aldea, un solo uso]" << endl;
-            cout << "8. Anillo del Asesino (2800 oro) [+5% crítico]" << endl;
-            cout << "9. Cancelar" << endl;
+        if (opcion == 1) { // --- COMPRAR ---
+            cout << "\n--- CATEGORIAS DE COMPRA ---" << endl;
+            cout << "1. Consumibles (Pociones y Elixires)" << endl;
+            cout << "2. Armas y Artefactos" << endl;
+            cout << "3. Reliquias" << endl;
+            cout << "0. Cancelar" << endl;
 
-            int compra; cin >> compra;
-            if (compra == 1 && p.oro >= 200 && p.inventario.size() < 10) { p.oro -= 200; p.inventario.push_back("Pocion Baja"); cout << "¡Compraste Pocion Baja!" << endl; }
-            else if (compra == 2 && p.oro >= 400 && p.inventario.size() < 10) { p.oro -= 400; p.inventario.push_back("Pocion Media"); cout << "¡Compraste Pocion Media!" << endl; }
-            else if (compra == 3 && p.oro >= 1200 && p.inventario.size() < 10) { p.oro -= 1200; p.inventario.push_back("Pocion Alta"); cout << "¡Compraste Pocion Alta!" << endl; }
-            else if (compra == 4 && p.oro >= 2500 && p.reliquias.size() < 2) { p.oro -= 2500; p.reliquias.push_back("Colmillo de Vampiro"); cout << "¡Compraste Colmillo de Vampiro!" << endl; }
-            else if (compra == 5 && p.oro >= 3000 && p.reliquias.size() < 2) { p.oro -= 3000; p.reliquias.push_back("Pluma del Fénix"); cout << "¡Compraste Pluma del Fénix!" << endl; }
-            else if (compra == 6 && p.oro >= 2200 && p.reliquias.size() < 2) { p.oro -= 2200; p.reliquias.push_back("Medallón del Guardián"); p.defensaBase += 10; cout << "¡Compraste Medallón del Guardián! Defensa +10." << endl; }
-            else if (compra == 7 && p.oro >= 1500 && p.reliquias.size() < 2) { p.oro -= 1500; p.reliquias.push_back("Llave del Pueblo"); cout << "¡Compraste Llave del Pueblo!" << endl; }
-            else if (compra == 8 && p.oro >= 2800 && p.reliquias.size() < 2) { p.oro -= 2800; p.reliquias.push_back("Anillo del Asesino"); p.bonusCritico += 5; cout << "¡Compraste Anillo del Asesino! Crítico +5%." << endl; }
-            else if (compra == 9) { cout << "Cancelaste la compra." << endl; }
-            else { cout << "Oro insuficiente, inventario lleno o selección inválida." << endl; }
+            int categoria; cin >> categoria;
+
+            if (categoria == 1) { // --- CONSUMIBLES ---
+                cout << "\n--- BOTICA DE LA CIUDADELA ---" << endl;
+                vector<Consumible> stockTienda;
+                int idxItem = 1;
+
+                for (const auto& item : listaConsumibles) {
+                    cout << idxItem << ". " << item.nombre 
+                         << " (" << item.precio << " oro) - " << item.descripcion << endl;
+                    stockTienda.push_back(item);
+                    idxItem++;
+                }
+                cout << "0. Cancelar" << endl;
+
+                int seleccion; cin >> seleccion;
+                if (seleccion > 0 && seleccion <= (int)stockTienda.size()) {
+                    Consumible elegido = stockTienda[static_cast<size_t>(seleccion - 1)];
+
+                    if (p.oro >= elegido.precio && p.inventario.size() < 10) {
+                        p.oro -= elegido.precio;
+                        p.inventario.push_back(elegido);
+                        cout << "-Compraste- " << elegido.nombre << "-" << endl;
+                    } else {
+                        cout << "Oro insuficiente o inventario lleno." << endl;
+                    }
+                }
+            }
+            else if (categoria == 2) { // --- ARMAS Y ARTEFACTOS ---
+                cout << "\n--- ARMAS Y ARTEFACTOS ---" << endl;
+
+                vector<Arma> poolArmas;
+                vector<Artefacto> poolArt;
+                int idxCompra = 1;
+
+                for (auto &a : listaArmas) if (a.clase == p.clase) poolArmas.push_back(a);
+                for (auto &a : listaArtefactos) if (a.clase == p.clase) poolArt.push_back(a);
+
+                random_shuffle(poolArmas.begin(), poolArmas.end());
+                random_shuffle(poolArt.begin(), poolArt.end());
+
+                for (int i = 0; i < 2 && i < (int)poolArmas.size(); i++) {
+                    cout << idxCompra << ". " << poolArmas[static_cast<size_t>(i)].nombre
+                         << " [Atk +" << poolArmas[static_cast<size_t>(i)].poder << "] (" 
+                         << poolArmas[static_cast<size_t>(i)].precio << " oro)" << endl;
+                    idxCompra++;
+                }
+                for (int i = 0; i < 2 && i < (int)poolArt.size(); i++) {
+                    cout << idxCompra << ". " << poolArt[static_cast<size_t>(i)].nombre 
+                         << " [Def +" << poolArt[static_cast<size_t>(i)].defensa << "] (" 
+                         << poolArt[static_cast<size_t>(i)].precio << " oro)" << endl;
+                    idxCompra++;
+                }
+                cout << "0. Cancelar" << endl;
+
+                int seleccion; cin >> seleccion;
+
+                if (seleccion > 0 && seleccion <= 2) { 
+                    Arma elegida = poolArmas[static_cast<size_t>(seleccion - 1)];
+                    if (elegida.poder > p.armaEquipada.poder) {
+                        if (p.oro >= elegida.precio) {
+                            p.oro -= elegida.precio;
+                            p.armaEquipada = elegida;
+                            cout << "-Arma equipada con exito-" << endl;
+                        } else cout << "No tienes suficiente oro." << endl;
+                    } else cout << "Tu arma actual es mejor o igual." << endl;
+                } 
+                else if (seleccion > 2 && seleccion <= 4) { 
+                    Artefacto elegido = poolArt[static_cast<size_t>(seleccion - 3)];
+                    if (elegido.defensa > p.artefactoEquipado.defensa) {
+                        if (p.oro >= elegido.precio) {
+                            p.oro -= elegido.precio;
+                            p.artefactoEquipado = elegido;
+                            cout << "-Artefacto equipado con exito-" << endl;
+                        } else cout << "Tu artefacto actual es mejor o igual." << endl;
+                    } else cout << "No tienes suficiente oro." << endl;
+                }
+            }
+            else if (categoria == 3) { // --- RELIQUIAS ---
+                system("cls");
+                cout << "\n--- RELIQUIAS DEL MERCADER ---" << endl;
+                cout << "Ranuras disponibles: " << p.reliquias.size() << "/2" << endl;
+                cout << "----------------------------------------" << endl;
+
+                if (p.reliquias.size() >= 2) {
+                    cout << "[!] Ya cargas 2 reliquias. No puedes llevar mas." << endl;
+                } else {
+                    // Mostrar solo reliquias que el jugador no tiene aún
+                    vector<pair<int, Reliquia>> disponibles; // par: precio, reliquia
+                    int idx = 1;
+
+                    for (const auto& rel : listaReliquias) {
+                        bool yaTiene = false;
+                        for (const auto& nombre : p.reliquias) {
+                            if (nombre == rel.nombre) { yaTiene = true; break; }
+                        }
+                        if (!yaTiene) {
+                            // Precio según rareza
+                            int precio = 0;
+                            if (rel.rareza == "Comun") precio = 300;
+                            else if (rel.rareza == "Raro") precio = 700;
+                            else if (rel.rareza == "Epico") precio = 1500;
+
+                            cout << idx << ". " << rel.nombre 
+                                 << " (" << precio << " oro)" << endl;
+                            cout << "   -> " << rel.efecto 
+                                 << " [" << rel.rareza << "]" << endl;
+                            disponibles.push_back({precio, rel});
+                            idx++;
+                        }
+                    }
+
+                    if (disponibles.empty()) {
+                        cout << "[!] Ya tienes todas las reliquias disponibles." << endl;
+                    } else {
+                        cout << "0. Cancelar" << endl;
+                        int seleccion; cin >> seleccion;
+
+                        if (seleccion > 0 && seleccion <= (int)disponibles.size()) {
+                            int precio = disponibles[static_cast<size_t>(seleccion - 1)].first;
+                            Reliquia elegida = disponibles[static_cast<size_t>(seleccion - 1)].second;
+
+                            if (p.oro >= precio) {
+                                p.oro -= precio;
+                                p.reliquias.push_back(elegida.nombre);
+                                cout << "\n[RELIQUIA] Obtuviste: " << elegida.nombre << "!" << endl;
+                                cout << "[EFECTO] " << elegida.efecto << endl;
+
+                                // Aplicar efectos inmediatos
+                                if (elegida.nombre == "Anillo del Asesino") {
+                                    p.bonusCritico += 5;
+                                    cout << "[BONUS] Critico +5%." << endl;
+                                } else if (elegida.nombre == "Medallon del Guardian") {
+                                    p.defensaBase += 10;
+                                    cout << "[BONUS] Defensa +10." << endl;
+                                } else if (elegida.nombre == "Garra del Berserker" && p.clase == "Guerrero") {
+                                    p.fuerza += 8;
+                                    p.ataqueBase += 8;
+                                    cout << "[BONUS] Fuerza +8." << endl;
+                                } else if (elegida.nombre == "Ojo del Arcano" && p.clase == "Mago") {
+                                    p.inteligencia += 8;
+                                    p.ataqueBase += 8;
+                                    cout << "[BONUS] Inteligencia +8." << endl;
+                                } else if (elegida.nombre == "Pluma del Viento" && p.clase == "Cazador") {
+                                    p.destreza += 8;
+                                    p.ataqueBase += 8;
+                                    cout << "[BONUS] Destreza +8." << endl;
+                                } else if (elegida.nombre == "Botas del Relampago") {
+                                    p.velocidadBase += 10;
+                                    cout << "[BONUS] Velocidad +10." << endl;
+                                } else if (elegida.nombre == "Piedra del Alma") {
+                                    cout << "[BONUS] Oro ganado por combate +25%." << endl;
+                                } else if (elegida.nombre == "Amuleto de Sangre") {
+                                    cout << "[BONUS] Activo: 20% de contraatacar al recibir dano." << endl;
+                                }
+                            } else {
+                                cout << "[!] No tienes suficiente oro." << endl;
+                            }
+                        }
+                    }
+                }
+            }
         }
-
-        // --- VENDER DINÁMICO ---
-        else if (opcion == 2) {
+        else if (opcion == 2) { // --- VENDER ---
             cout << "\n--- OBJETOS EN TU PODER ---" << endl;
-            vector<pair<string,int>> opcionesVenta;
             int idx = 1;
 
-            // Inventario
-            for (string item : p.inventario) {
-                int precio = (item=="Pocion Baja")?50:(item=="Pocion Media")?100:(item=="Pocion Alta")?300:0;
-                if (precio > 0) {
-                    cout << idx << ". " << item << " (+" << precio << " oro)" << endl;
-                    opcionesVenta.push_back({item,precio});
-                    idx++;
-                }
-            }
-
-            // Reliquias
-            for (string r : p.reliquias) {
-                int precio = (r=="Colmillo de Vampiro")?1250:(r=="Pluma del Fénix")?1500:(r=="Medallón del Guardián")?1100:(r=="Llave del Pueblo")?750:(r=="Anillo del Asesino")?1400:0;
-                if (precio > 0) {
-                    cout << idx << ". " << r << " (+" << precio << " oro)" << endl;
-                    opcionesVenta.push_back({r,precio});
-                    idx++;
-                }
-            }
-
-            cout << idx << ". Cancelar" << endl;
-            int venta; cin >> venta;
-            if (venta > 0 && venta < idx) {
-                string elegido = opcionesVenta[static_cast<size_t>(venta-1)].first;
-                int precio = opcionesVenta[static_cast<size_t>(venta-1)].second;
-
-                auto itInv = find(p.inventario.begin(), p.inventario.end(), elegido);
-                if (itInv != p.inventario.end()) p.inventario.erase(itInv);
-                else {
-                    auto itRel = find(p.reliquias.begin(), p.reliquias.end(), elegido);
-                    if (itRel != p.reliquias.end()) p.reliquias.erase(itRel);
-                }
-                p.oro += precio;
-                cout << "¡Venta realizada!" << endl;
+            if (p.inventario.empty()) {
+                cout << "No tienes consumibles para vender." << endl;
             } else {
-                cout << "Cancelaste la venta." << endl;
+                for (size_t i = 0; i < p.inventario.size(); i++) {
+                    int pVenta = static_cast<int>(static_cast<float>(p.inventario[i].precio) * 0.4f);
+                    cout << idx << ". " << p.inventario[i].nombre << " (+" << pVenta << " oro)" << endl;
+                    idx++;
+                }
+                cout << idx << ". Cancelar" << endl;
+
+                int venta; cin >> venta;
+                if (venta > 0 && venta < idx) {
+                    int iReal = venta - 1;
+                    int pVenta = static_cast<int>(
+                        static_cast<float>(p.inventario[static_cast<size_t>(iReal)].precio) * 0.4f
+                    );
+                    p.oro += pVenta;
+                    cout << "Vendiste " << p.inventario[static_cast<size_t>(iReal)].nombre 
+                         << " por " << pVenta << " oro." << endl;
+                    p.inventario.erase(p.inventario.begin() + iReal);
+                }
             }
         }
-
         else if (opcion == 3) {
             enMenu = false;
         }

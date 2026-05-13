@@ -1,121 +1,201 @@
 #include "loot.h"
+#include "Armas.h"
+#include "Artefactos.h"
+#include "Reliquias.h"
+#include "Utilidades.h"
+#include "catalogoObjetos.h"  
 #include <iostream>
 #include <cstdlib>
 #include <vector>
+#include <cmath>
+#include "Consumibles.h"
+
 using namespace std;
 
 // =========================================================
-// BLOQUE M2: LOOT Y MUNDO (v1.18)
+// BLOQUE M2: LOOT Y MUNDO (v1.31)
 // =========================================================
 
-//Funcion que genera el loot
-void gestionarLoot(Personaje &p, int y, bool raro) {
+void gestionarLoot(Personaje &p, int y, bool raro) 
+{
     int z = (y <= 60) ? 1 : (y <= 120) ? 2 : (y <= 180) ? 3 : 4;
 
-    // --- SISTEMA DE POCIONES (por zona + reliquias) ---
-    if ((rand() % 100) < (raro ? 20 : 20)) { // 20% probabilidad para todos
+    // --- SISTEMA DE CONSUMIBLES ---
+    if ((rand() % 100) < 25) { 
         if (p.inventario.size() < 10u) {
-            string pItem;
-            int roll = rand() % 100;
-
-            if (z == 1) pItem = "Pocion Baja";
-            else if (z == 2) pItem = (roll < 60) ? "Pocion Baja" : "Pocion Media";
-            else if (z == 3) pItem = (roll < 50) ? "Pocion Media" : "Pocion Alta";
-            else {
-                pItem = (roll < 70) ? "Pocion Alta" : "Pocion Media";
-                if ((rand() % 100) < 15 && p.reliquias.size() < 2) {
-                    vector<string> reliquiasPosibles = {
-                        "Colmillo de Vampiro","Pluma del Fénix",
-                        "Medallón del Guardián","Llave del Pueblo","Anillo del Asesino"
-                    };
-                    string reliquia = reliquiasPosibles[static_cast<size_t>(rand()) % reliquiasPosibles.size()];
-                    p.reliquias.push_back(reliquia);
-                    cout << "[RELIQUIA] ¡Has encontrado " << reliquia << "!" << endl;
-                    if (reliquia == "Anillo del Asesino") { p.bonusCritico += 5; cout << "[BONUS] Crítico +5%." << endl; }
-                    else if (reliquia == "Medallón del Guardián") { p.defensaBase += 10; cout << "[BONUS] Defensa +10." << endl; }
+            std::vector<Consumible> posibles;
+            for (const auto& item : listaConsumibles) {
+                if (item.id < 10 && item.zona == z) {
+                    posibles.push_back(item);
+                }
+                else if (item.id >= 10 && raro && item.zona <= z) {
+                    posibles.push_back(item);
                 }
             }
-            p.inventario.push_back(pItem);
-            cout << "[LOOT] " << pItem << " obtenida." << endl;
+
+            if (!posibles.empty()) {
+                int index = rand() % static_cast<int>(posibles.size());
+                Consumible lootObtenido = posibles[static_cast<size_t>(index)];
+                p.inventario.push_back(lootObtenido);
+                
+                if (lootObtenido.id >= 10) {
+                    cout << "[LOOT] ¡ELIXIR ESPECIAL! " << lootObtenido.nombre << " obtenido." << endl;
+                    cout << " -> " << lootObtenido.descripcion << endl;
+                } else {
+                    cout << "[LOOT] " << lootObtenido.nombre << " obtenida." << endl;
+                }
+            }
         }
     }
 
-    // --- SISTEMA DE ARMAS MEJORADO (Rarezas + Lore) ---
-    int s = rand() % 100 + 1;
-    Arma nW = {"-", 0};
+    // --- SISTEMA DE ARMAS ---
+    int sArma = rand() % 100 + 1;
+    Arma nW(0, "-", 0, "Ninguno", 0, "Ninguno", 0, 0); 
     float m = raro ? 1.2f : 1.0f;
 
-    if (s <= 40) { // 40% probabilidad para todos
-        if (raro) cout << "\n¡UN BRILLO MISTICO EMANA DE LOS RESTOS!" << endl;
+    if (sArma <= 40) {
+        if (raro) cout << "\nUN BRILLO MISTICO EMANA DE LOS RESTOS" << endl;
 
-        if (z == 1) {
-            if (raro) {
-                if (p.clase == "Guerrero") nW = {"Espada de Hierro", (int)(30 * m)};
-                else if (p.clase == "Mago") nW = {"Baculo de las Sombras", (int)(33 * m)};
-                else nW = {"Arco Veloz", (int)(30 * m)};
-            } else {
-                if (p.clase == "Guerrero") nW = {"Espada Antigua", (int)(20 * m)};
-                else if (p.clase == "Mago") nW = {"Baculo Maldito", (int)(22 * m)};
-                else nW = {"Arco del Bandido", (int)(20 * m)};
-            }
-        }
-        else if (z == 2) {
-            if (raro) {
-                if (p.clase == "Guerrero") nW = {"Sed de Sangre", (int)(42 * m)};
-                else if (p.clase == "Mago") nW = {"Varita Negra", (int)(45 * m)};
-                else nW = {"Colmillo de Fuego", (int)(43 * m)};
-            } else {
-                if (p.clase == "Guerrero") nW = {"Masamune", (int)(35 * m)};
-                else if (p.clase == "Mago") nW = {"Baculo de Bruja Negra", (int)(37 * m)};
-                else nW = {"Arco de Hueso", (int)(35 * m)};
-            }
-        }
-        else if (z == 3) {
-            if (raro) {
-                if (p.clase == "Guerrero") nW = {"La Rompe Huesos", (int)(65 * m)};
-                else if (p.clase == "Mago") nW = {"Varita del Oraculo Maldito", (int)(68 * m)};
-                else nW = {"Colmillo de Sombra", (int)(64 * m)};
-            } else {
-                if (p.clase == "Guerrero") nW = {"Hacha del Verdugo", (int)(50 * m)};
-                else if (p.clase == "Mago") nW = {"Cetro de la Cienaga", (int)(50 * m)};
-                else nW = {"Arco del Acechador", (int)(48 * m)};
-            }
-        }
-        else if (z == 4) {
-            if (raro) {
-                if (p.clase == "Guerrero") nW = {"Espada Acero de Elfo", (int)(110 * m)};
-                else if (p.clase == "Mago") nW = {"Baculo del Nigromante", (int)(115 * m)};
-                else nW = {"Colmillo de Dragon", (int)(113 * m)};
-            } else {
-                if (p.clase == "Guerrero") nW = {"Espada de Obsidiana", (int)(95 * m)};
-                else if (p.clase == "Mago") nW = {"Baculo del Caos", (int)(105 * m)};
-                else nW = {"Arco de Hueso de Dragon", (int)(98 * m)};
+        std::vector<Arma> posibles;
+        for (const auto& arma : listaArmas) {
+            if (arma.clase == p.clase && arma.zona == z) {
+                if ((raro && arma.rareza == "Raro") || (!raro && arma.rareza == "Comun")) {
+                    posibles.push_back(arma);
+                }
             }
         }
 
-        if (raro) {
-            nW.nombre += "+";
-            nW.atk = static_cast<int>(static_cast<float>(nW.atk) * 1.15f + 0.5f);
+        if (!posibles.empty()) {
+            size_t index = static_cast<size_t>(rand() % static_cast<int>(posibles.size()));
+            nW = posibles[index];
+            nW.poder = static_cast<int>(std::round(static_cast<float>(nW.poder) * m));
+
+            if (raro) {
+                nW.nombre += "+";
+                nW.poder = static_cast<int>(static_cast<float>(nW.poder) * 1.15f + 0.5f);
+            }
+
+            if (nW.poder > p.armaEquipada.poder) {
+                cout << "[!] HALLAZGO: " << nW.nombre 
+                     << " (Poder: " << nW.poder << ") Equipar? (S/N): ";
+                char c; cin >> c;
+                if (tolower(c) == 's') p.armaEquipada = nW;
+            }
+        }
+    }
+
+    // --- SISTEMA DE ARTEFACTOS ---
+    if (p.esBerserker) {
+        int sArtefacto = rand() % 100 + 1;
+        if (sArtefacto <= 30) {
+            cout << "\n[!] Viste un artefacto entre los restos, pero como Berserker prefieres tus manos libres." << endl;
+        }
+    } 
+    else { 
+        int sArtefacto = rand() % 100 + 1;
+        Artefacto nA(0, "-", 0, "Ninguno", 0, "Ninguno", 0, 0);
+        float mA = raro ? 1.2f : 1.0f;
+
+        if (sArtefacto <= 30) {
+            if (raro) cout << "\nUN DESTELLO SURGE ENTRE LOS RESTOS" << endl;
+
+            std::vector<Artefacto> posibles;
+            for (const auto& art : listaArtefactos) {
+                if (art.clase == p.clase && art.zona == z) {
+                    if ((raro && art.rareza == "Raro") || (!raro && art.rareza == "Comun")) {
+                        posibles.push_back(art);
+                    }
+                }
+            }
+
+            if (!posibles.empty()) {
+                int index = rand() % static_cast<int>(posibles.size());
+                nA = posibles[static_cast<size_t>(index)];
+                nA.defensa = static_cast<int>(static_cast<float>(nA.defensa) * mA);
+
+                if (raro) {
+                    nA.nombre += "+";
+                    nA.defensa = static_cast<int>(static_cast<float>(nA.defensa) * 1.15f + 0.5f);
+                }
+
+                if (nA.defensa > p.artefactoEquipado.defensa) {
+                    cout << "[!] HALLAZGO: " << nA.nombre 
+                         << " (Def: +" << nA.defensa << ") Equipar? (S/N): ";
+                    char c; cin >> c;
+                    if (tolower(c) == 's') {
+                        p.artefactoEquipado = nA;
+                        cout << "Has equipado el nuevo artefacto.\n";
+                    }
+                } else {
+                    cout << "[!] Artefacto encontrado (" << nA.nombre 
+                         << ") descartado automaticamente.\n";
+                }
+            }
+        }
+    }
+
+    // --- SISTEMA DE RELIQUIAS ---
+    if ((rand() % 100) < 15 && p.reliquias.size() < 2) {
+
+        // Filtramos reliquias que el jugador aún no tiene
+        std::vector<Reliquia> posibles;
+        for (const auto& rel : listaReliquias) {
+            bool yaTiene = false;
+            for (const auto& nombre : p.reliquias) {
+                if (nombre == rel.nombre) { yaTiene = true; break; }
+            }
+            if (!yaTiene) posibles.push_back(rel);
         }
 
-        if (nW.atk > p.armaEquipada.atk) {
-            cout << "[!] HALLAZGO: " << nW.nombre << " (Atk: " << nW.atk << ") ¿Equipar? (S/N): ";
-            char c; cin >> c;
-            if (tolower(c) == 's') p.armaEquipada = nW;
+        if (!posibles.empty()) {
+            Reliquia r = posibles[static_cast<size_t>(rand() % static_cast<int>(posibles.size()))];
+            p.reliquias.push_back(r.nombre);
+            cout << "[RELIQUIA] Has encontrado " << r.nombre << "! (" << r.efecto << ")" << endl;
+
+            // Aplicar efectos inmediatos
+            if (r.nombre == "Anillo del Asesino") {
+                p.bonusCritico += 10;
+                cout << "[BONUS] Critico +10%." << endl;
+            } else if (r.nombre == "Medallon del Guardian") {
+                p.defensaBase += 20;
+                cout << "[BONUS] Defensa +20." << endl;
+            } else if (r.nombre == "Garra del Berserker" && p.clase == "Guerrero") {
+                p.fuerza += 15;
+                p.ataqueBase += 15;
+                cout << "[BONUS] Fuerza +15." << endl;
+            } else if (r.nombre == "Ojo del Arcano" && p.clase == "Mago") {
+                p.inteligencia += 15;
+                p.ataqueBase += 15;
+                cout << "[BONUS] Inteligencia +15." << endl;
+            } else if (r.nombre == "Pluma del Viento" && p.clase == "Cazador") {
+                p.destreza += 15;
+                p.ataqueBase += 15;
+                cout << "[BONUS] Destreza +15." << endl;
+            } else if (r.nombre == "Botas del Relampago") {
+                p.velocidadBase += 15;
+                cout << "[BONUS] Velocidad +15." << endl;
+            } else if (r.nombre == "Piedra del Alma") {
+                cout << "[BONUS] Oro ganado por combate +25%." << endl;
+                // El bonus se aplica en combate.cpp al calcular oroGanado
+            } else if (r.nombre == "Amuleto de Sangre") {
+                cout << "[BONUS] Activo: 20% de contraatacar al recibir dano." << endl;
+                // La lógica de contraataque se aplica en combate.cpp
+            }
         }
     }
 }
 
-// --- Zonas del Juego ---
-string obtenerNombreZona(int y) {
+// --- NOMBRES DE ZONA ---
+string obtenerNombreZona(int y) 
+{
     if (y <= 60) return "Aldea en las Sombras";
     if (y <= 120) return "Bosque Obscuro";
     if (y <= 180) return "Pantano Siniestro";
-    if (y < 240) return "Tierra Desolada";
-    return "Castillo Abandonado";
+    if (y <= 240) return "Tierra Desolada";
+    return "Castillo Abandonado"; 
 }
 
-// --- Lore del Mundo, diálogos mientras caminas ---
+// --- DIÁLOGOS AMBIENTALES ---
 void lanzarDialogoAmbiental(int y) {
     if (rand() % 100 < 15) {
         cout << "\n[PENSAMIENTO] ";
@@ -128,9 +208,17 @@ void lanzarDialogoAmbiental(int y) {
         } else if (y <= 180) {
             string f[] = {"El lodo burbujea con un sonido extraño.", "Susurros lejanos parecen decir tu nombre...", "Cada paso pesa mas en este fango."};
             cout << f[rand()%3] << endl;
-        } else if (y < 240) {
+        } else if (y <= 240) {
             string f[] = {"Ceniza volcanica cae del cielo gris.", "Un calor antinatural emana del suelo.", "El Castillo se alza imponente frente a ti."};
             cout << f[rand()%3] << endl;
+        } else { 
+            string f[] = {
+                "El eco de tus pasos retumba en los salones vacios.", 
+                "Las estatuas de dragones parecen seguirte con la mirada.", 
+                "Sientes una presion inmensa en el pecho... el Rey esta cerca.",
+                "El frio del castillo cala hasta tus huesos, a pesar del fuego exterior."
+            };
+            cout << f[rand()%4] << endl;
         }
         system("pause");
     }
