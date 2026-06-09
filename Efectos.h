@@ -2,6 +2,7 @@
 #define EFECTOS_H
 
 #include <string>
+#include <optional>
 
 // --- Efecto ---
 struct Efecto {
@@ -22,5 +23,8 @@ struct Efecto {
     // Aplica el efecto sobre un objetivo (jugador o monstruo)
     void aplicar(int &hp, int hpMax, bool &turnoPerdido) const;
 };
+
+// Busca un efecto por ID. Devuelve std::nullopt si no existe.
+std::optional<Efecto> obtenerEfectoPorId(int id);
 
 #endif

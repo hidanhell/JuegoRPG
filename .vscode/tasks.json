@@ -26,6 +26,8 @@
                 "ReliquiasDatos.cpp",
                 "Consumibles.cpp",
                 "CatalogoObjetos.cpp",
+                "Rng.cpp",
+                "IO.cpp",
                 "-o",
                 "${workspaceFolder}/Reino"
             ],

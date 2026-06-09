@@ -158,7 +158,7 @@ void Personaje::subirNivel() {
             }
 
             cout << "---Has desbloqueado la habilidad:--- " 
-                 << obtenerHabilidadPorId(habilidadesIds.back()).nombre << "!" << endl;
+                 << obtenerHabilidadPorId(habilidadesIds.back()).value_or(Habilidad{0,"?","",0,0,"",0}).nombre << "!" << endl;
         }
 
         
@@ -191,7 +191,7 @@ if (nivel >= 10 && clase == "Guerrero" && !tieneHabilidad10) {
     }
 
     cout << "---Has desbloqueado la habilidad activa:--- " 
-         << obtenerHabilidadPorId(habilidadesIds.back()).nombre << "!" << endl;
+         << obtenerHabilidadPorId(habilidadesIds.back()).value_or(Habilidad{0,"?","",0,0,"",0}).nombre << "!" << endl;
 }
 
         //-----Habilidades Pasivas Nivel 15 (Subclases)
@@ -221,7 +221,7 @@ if (nivel >= 15 && clase == "Guerrero" && !tieneSubclase15) {
     }
 
     cout << "---Has desbloqueado la subclase:--- " 
-        << obtenerHabilidadPorId(habilidadesIds.back()).nombre << "!" << endl;
+        << obtenerHabilidadPorId(habilidadesIds.back()).value_or(Habilidad{0,"?","",0,0,"",0}).nombre << "!" << endl;
     tieneSubclase15 = true;
 }
 
@@ -260,7 +260,7 @@ if (nivel >= 15 && clase == "Guerrero" && !tieneSubclase15) {
             }
 
             cout << "---Has desbloqueado la habilidad:--- " 
-                 << obtenerHabilidadPorId(habilidadesIds.back()).nombre << "!" << endl;
+                 << obtenerHabilidadPorId(habilidadesIds.back()).value_or(Habilidad{0,"?","",0,0,"",0}).nombre << "!" << endl;
         }
 
         //-----Habilidades Activas Nivel 10
@@ -286,7 +286,7 @@ if (nivel >= 15 && clase == "Guerrero" && !tieneSubclase15) {
             else if (eleccion == 3) { habilidadesIds.push_back(113); }
 
             cout << "¡Has desbloqueado la habilidad activa: " 
-                 << obtenerHabilidadPorId(habilidadesIds.back()).nombre << "!" << endl;
+                 << obtenerHabilidadPorId(habilidadesIds.back()).value_or(Habilidad{0,"?","",0,0,"",0}).nombre << "!" << endl;
         }
 
 
@@ -309,7 +309,7 @@ if (nivel >= 15 && clase == "Guerrero" && !tieneSubclase15) {
             }
 
             cout << "---Has desbloqueado la subclase:--- " 
-                 << obtenerHabilidadPorId(habilidadesIds.back()).nombre << "!" << endl;
+                 << obtenerHabilidadPorId(habilidadesIds.back()).value_or(Habilidad{0,"?","",0,0,"",0}).nombre << "!" << endl;
             tieneSubclase15 = true;
         }
 
@@ -348,7 +348,7 @@ if (nivel >= 15 && clase == "Guerrero" && !tieneSubclase15) {
             }
 
             cout << "¡Has desbloqueado la habilidad: " 
-                 << obtenerHabilidadPorId(habilidadesIds.back()).nombre << "!" << endl;
+                 << obtenerHabilidadPorId(habilidadesIds.back()).value_or(Habilidad{0,"?","",0,0,"",0}).nombre << "!" << endl;
         }
 
         //-----Habilidades Activas Nivel 10
@@ -374,7 +374,7 @@ if (nivel >= 15 && clase == "Guerrero" && !tieneSubclase15) {
             else if (eleccion == 3) { habilidadesIds.push_back(123); }
 
             cout << "¡Has desbloqueado la habilidad activa: " 
-                 << obtenerHabilidadPorId(habilidadesIds.back()).nombre << "!" << endl;
+                 << obtenerHabilidadPorId(habilidadesIds.back()).value_or(Habilidad{0,"?","",0,0,"",0}).nombre << "!" << endl;
         }
 
         //-----Habilidades Pasivas Nivel 15 (Subclases)
@@ -395,7 +395,7 @@ if (nivel >= 15 && clase == "Guerrero" && !tieneSubclase15) {
             }
 
             cout << "---Has desbloqueado la subclase:--- " 
-                 << obtenerHabilidadPorId(habilidadesIds.back()).nombre << "!" << endl;
+                 << obtenerHabilidadPorId(habilidadesIds.back()).value_or(Habilidad{0,"?","",0,0,"",0}).nombre << "!" << endl;
             tieneSubclase15 = true;
         }
 

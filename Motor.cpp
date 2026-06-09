@@ -6,9 +6,8 @@
 #include "combate.h"       // obtenerEfectoPorId ya declarada aquí
 #include "loot.h"
 #include "tienda.h"
+#include "Rng.h"
 #include <iostream>
-#include <cstdlib>
-#include <ctime>
 #include <map>
 #include <cctype>
 #include "catalogoObjetos.h"
@@ -22,7 +21,6 @@
 using namespace std;
 
 int main() {
-    srand((unsigned)time(0));
     string nombreUser;
     int tipoClase;
 
@@ -85,7 +83,7 @@ int main() {
         cout << "=============== " << p.nombre << " (" << p.clase;
         if (p.tieneSubclase15) {
             int idSubclase = p.habilidadesIds.back();
-            cout << " ===> " << obtenerHabilidadPorId(idSubclase).nombre;
+            if (auto h = obtenerHabilidadPorId(idSubclase)) cout << " ===> " << h->nombre;
         }
         cout << ") ===============\n";
 
@@ -127,7 +125,7 @@ int main() {
                 lanzarDialogoAmbiental(p.posY);
 
                 // 30% de probabilidad de combate aleatorio
-                if (p.posY < 241 && rand() % 100 < 30) {
+                if (p.posY < 241 && Rng::get().probabilidad(30)) {
                     iniciarCombate(p, p.posY);
                 }
             }
@@ -149,7 +147,7 @@ int main() {
             cout << "Clase: " << p.clase;
             if (p.tieneSubclase15) {
                 int idSubclase = p.habilidadesIds.back();
-                cout << " → " << obtenerHabilidadPorId(idSubclase).nombre;
+                if (auto h = obtenerHabilidadPorId(idSubclase)) cout << " → " << h->nombre;
             }
             cout << "\nNivel: " << p.nivel 
                  << " | EXP: " << p.exp << "/" << (p.nivel * 50) 
@@ -174,21 +172,17 @@ int main() {
             cout << "\n=============== Equipamiento ===============\n";
             cout << "Arma: " << p.armaEquipada.nombre 
                  << " (+" << p.armaEquipada.poder << " ATQ)";
-            if (p.armaEquipada.efectoId > 0) {
-                Efecto ef = obtenerEfectoPorId(p.armaEquipada.efectoId);
-                cout << " [Efecto: " << ef.nombre << "]";
-            } else {
+            if (auto ef = obtenerEfectoPorId(p.armaEquipada.efectoId))
+                cout << " [Efecto: " << ef->nombre << "]";
+            else
                 cout << " [Sin efecto]";
-            }
 
-            cout << "\nArtefacto: " << p.artefactoEquipado.nombre 
+            cout << "\nArtefacto: " << p.artefactoEquipado.nombre
                  << " (+" << p.artefactoEquipado.defensa << " DEF)";
-            if (p.artefactoEquipado.efectoId > 0) {
-                Efecto efArt = obtenerEfectoPorId(p.artefactoEquipado.efectoId);
-                cout << " [Efecto: " << efArt.nombre << "]";
-            } else {
+            if (auto ef = obtenerEfectoPorId(p.artefactoEquipado.efectoId))
+                cout << " [Efecto: " << ef->nombre << "]";
+            else
                 cout << " [Sin efecto]";
-            }
 
             // Inventario abreviado
             cout << "\n\n=============== Inventario (max 10) ===============\n";

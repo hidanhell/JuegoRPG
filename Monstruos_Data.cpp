@@ -2,7 +2,7 @@
 #include "HabilidadesMonstruo.h"
 #include <vector>
 #include <ctime>
-#include <cstdlib>
+#include "Rng.h"
 #include <iostream>
 #include <algorithm> // Para usar std::max y std::min si fuera necesario
 
@@ -60,7 +60,7 @@ int obtenerNivelAleatorio(int zona) {
     int minLvl = (zona - 1) * 5 + 1;
     int maxLvl = zona * 5;
     if (zona >= 5) return 30; // Nivel maximo para el Rey Dragon
-    return minLvl + (rand() % (maxLvl - minLvl + 1));
+    return Rng::get().entre(minLvl, maxLvl);
 }
 
 Monstruo construirMonstruo(PlantillaMonstruo p, int zona) {
@@ -88,7 +88,7 @@ Monstruo construirMonstruo(PlantillaMonstruo p, int zona) {
 
     // Naturaleza aleatoria (Lancelot tiene naturaleza Divina fija)
     if (!p.esJefe) {
-        aplicarNaturaleza(m, listaNaturalezas[rand() % 5]);
+        aplicarNaturaleza(m, listaNaturalezas[Rng::get().entre(0, 4)]);
     } else {
         m.naturaleza = "Divina";
     }
