@@ -428,7 +428,7 @@ void Personaje::reaparecer() {
     // Limpiar estados alterados al morir (Opcional, pero recomendado)
     efectos.clear();
     
-    system("pause");
+    esperarTecla();
 }
 
 // =========================================================

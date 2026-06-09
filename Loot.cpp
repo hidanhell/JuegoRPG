@@ -220,6 +220,6 @@ void lanzarDialogoAmbiental(int y) {
             };
             cout << f[rand()%4] << endl;
         }
-        system("pause");
+        esperarTecla();
     }
 }

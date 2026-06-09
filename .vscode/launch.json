@@ -1,36 +1,16 @@
 {
   "version": "0.2.0",
   "configurations": [
-
     {
       "name": "Run RPG",
       "type": "cppdbg",
       "request": "launch",
-      "program": "D:/programas/JuegoRPG/Reino.exe",
+      "program": "${workspaceFolder}/Reino",
       "args": [],
-      "cwd": "D:/programas/JuegoRPG",
-      "console": "externalTerminal",
-      "MIMode": "gdb",
-      "miDebuggerPath": "D:/programas/JuegoRPG/Reino.exe"
-    },
-    {
-      "name": "C/C++ Runner: Debug Session",
-      "type": "cppdbg",
-      "request": "launch",
-      "args": [],
-      "stopAtEntry": false,
-      "externalConsole": true,
-      "cwd": "d:/programas/JuegoRPG",
-      "program": "d:/programas/JuegoRPG/build/Debug/outDebug",
-      "MIMode": "gdb",
-      "miDebuggerPath": "gdb",
-      "setupCommands": [
-        {
-          "description": "Enable pretty-printing for gdb",
-          "text": "-enable-pretty-printing",
-          "ignoreFailures": true
-        }
-      ]
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal",
+      "MIMode": "lldb",
+      "preLaunchTask": "build"
     }
   ]
 }

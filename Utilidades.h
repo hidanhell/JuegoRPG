@@ -8,5 +8,7 @@ void mostrarBarraHP(int hp, int hpMax);
 void mostrarCabecera(const std::string &titulo);
 void limpiarBuffer();
 char aMinuscula(char c);
+void limpiarPantalla();
+void esperarTecla();
 
 #endif

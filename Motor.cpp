@@ -44,7 +44,7 @@ int main() {
     char decision; cin >> decision;
 
     // Primero pedimos nombre y clase para poder asignar el arma correcta
-    system("cls");
+    limpiarPantalla();
     cout << "Al salir de la casa, un viento frio golpea tu rostro." << endl;
     cout << "Tu mente comienza a aclararse... recuerdas tu nombre y tu senda." << endl;
     cout << "Dime tu nombre: "; 
@@ -70,14 +70,14 @@ int main() {
 
         p.armaEquipada = inicial;
         p.inventario.push_back(listaConsumibles[0]);
-        system("pause");
+        esperarTecla();
     } else {
         cout << "\nDecides salir sin abrir el cofre. El mundo sera mas hostil sin ayuda inicial." << endl;
-        system("pause");
+        esperarTecla();
     }
 
     while (true) {
-        system("cls");
+        limpiarPantalla();
         cout << "ESTAS EN: " << obtenerNombreZona(p.posY) << endl;
         cout << "POSICION: [X: " << p.posX << " | Y: " << p.posY << "]" << endl;
 
@@ -141,7 +141,7 @@ int main() {
             }
         }
         else if (input == 'p') {
-            system("cls");
+            limpiarPantalla();
 
             mostrarCabecera("STATUS DE " + p.nombre);
 
@@ -237,7 +237,7 @@ int main() {
 
         // --- Encuentro final con Lancelot ---
         if (p.posY == 241) {
-            system("cls");
+            limpiarPantalla();
             mostrarCabecera("EL TRONO DEL REY DRAGON");
             cout << "Lancelot te espera sentado en un trono de huesos." << endl;
             cout << "Antes de avanzar, ves un Cofre Divino." << endl;
@@ -252,7 +252,7 @@ int main() {
                 p.armaEquipada = legend;
                 for (int i = 0; i < 3; i++) p.inventario.push_back(listaConsumibles[2]); 
                 cout << "\n--HAS OBTENIDO " << legend.nombre << " Y 3 POCIONES ALTAS--" << endl;
-                system("pause");
+                esperarTecla();
             }
 
             cout << "\n--Es el momento de la venganza-- (S/N): ";
@@ -261,10 +261,10 @@ int main() {
                 iniciarCombate(p, 241);
 
                 if (p.hp > 0 && p.posY == 241) {
-                    system("cls");
+                    limpiarPantalla();
                     cout << "--Lancelot ha caido! El cielo se aclara por primera vez en decadas." << endl;
                     cout << "Has completado tu destino, " << p.nombre << "." << endl;
-                    system("pause");
+                    esperarTecla();
                     break;
                 }
             } else {

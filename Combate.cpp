@@ -96,7 +96,7 @@ void iniciarCombate(Personaje &p, int y) {
     mostrarCabecera(tituloCombate);
 
     while (p.hp > 0 && m.hp > 0) {
-        system("cls"); 
+        limpiarPantalla(); 
 
         // HUD Actualizado: Ahora incluye el Nivel del monstruo
         // NUEVO 1.31: Etiqueta [JEFE] para Lancelot
@@ -158,7 +158,7 @@ void iniciarCombate(Personaje &p, int y) {
             cout << "\n LANCELOT CAMBIA SUS ESCAMAS  Defensa aumentada." << endl;
             cout << "[MECANICA] Las escamas del Rey brillan con la magia corrupta de Angra." << endl;
             cout << "[PELIGRO] --Lancelot absorbera el dano de tus proximos--" << turnosAbsorcion << " ataques y lo convertira en vida!" << endl;
-            system("pause");
+            esperarTecla();
         }
 
         // --- FASE 3: LA FURIA DE ANGRA (Activa al 25% de HP) ---
@@ -188,7 +188,7 @@ void iniciarCombate(Personaje &p, int y) {
                 cout << "[SISTEMA] El poder del Caos te ha abrumado..." << endl;
             }
             
-            system("pause");
+            esperarTecla();
         }
 
 
@@ -275,7 +275,7 @@ void iniciarCombate(Personaje &p, int y) {
     
     bool enInventario = true;
     while (enInventario) {
-        system("cls");
+        limpiarPantalla();
         cout << "=== INVENTARIO DE CONSUMIBLES (" << p.inventario.size() << "/10) ===" << endl;
 
         if (p.inventario.empty()) {
@@ -327,7 +327,7 @@ void iniciarCombate(Personaje &p, int y) {
             p.inventario.erase(p.inventario.begin() + (selInv - 1));
             
             enInventario = false; // Aquí NO restamos i, el turno termina
-            system("pause");
+            esperarTecla();
         }
     }
 
@@ -347,11 +347,11 @@ void iniciarCombate(Personaje &p, int y) {
     if (rand() % 100 < chanceHuida) {
         cout << "[HUIDA] ¡Lograste escapar!" << endl;
         huidaExitosa = true;
-        system("pause");
+        esperarTecla();
     } else {
         // Fallo: no hacemos nada, el turno pasa y el enemigo atacará normalmente
         cout << "[HUIDA] ¡Fallaste al escapar! " << m.nombre << " te bloquea el paso." << endl;
-        system("pause");
+        esperarTecla();
     }
 }
 
@@ -421,7 +421,7 @@ void iniciarCombate(Personaje &p, int y) {
     // NUEVO 1.31: Si el monstruo huyó, no hay recompensa
     if (monstruoHuyo) {
         cout << "\n[INFO] " << m.nombre << " ha huido cobardemente. No ganas recompensa." << endl;
-        system("pause");
+        esperarTecla();
         return;
     }
 
@@ -442,13 +442,13 @@ void iniciarCombate(Personaje &p, int y) {
         // Lógica original de botín y nivel
         gestionarLoot(p, y, m.esRaro);
         p.subirNivel();
-        system("pause");
+        esperarTecla();
 
     // Este es si ganas el combate final (LORE INTACTO)
     } else if (m.hp <= 0 && y >= 241) {
         cout << "\n--LANCELOT HA CAIDO-- El cielo se aclara por primera vez en decadas." << endl;
         cout << "Entre las cenizas recoges la ESCAMA DEL REY DRAGON, simbolo eterno de tu victoria." << endl;
-        system("pause");
+        esperarTecla();
         
     } else if (p.hp <= 0) {
         // Lógica de muerte original

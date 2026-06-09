@@ -29,3 +29,21 @@ void limpiarBuffer() {
 char aMinuscula(char c) {
     return static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
 }
+
+void limpiarPantalla() {
+#ifdef _WIN32
+    system("cls");
+#else
+    system("clear");
+#endif
+}
+
+void esperarTecla() {
+    cout << "Presiona ENTER para continuar...";
+#ifdef _WIN32
+    system("pause >nul");
+#else
+    limpiarBuffer();
+    cin.get();
+#endif
+}

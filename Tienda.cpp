@@ -8,6 +8,7 @@
 #include <vector>
 #include <cstdlib>
 #include <ctime>
+#include <random>
 #include "catalogoObjetos.h"
 #include "Consumibles.h"      
 
@@ -22,7 +23,7 @@ void entrarTienda(Personaje &p) {
     srand((unsigned)time(nullptr));
 
     while (enMenu) {
-        system("cls");
+        limpiarPantalla();
         mostrarCabecera("MERCADER DE LA CIUDADELA");
 
         cout << "Oro disponible: " << p.oro 
@@ -82,8 +83,9 @@ void entrarTienda(Personaje &p) {
                 for (auto &a : listaArmas) if (a.clase == p.clase) poolArmas.push_back(a);
                 for (auto &a : listaArtefactos) if (a.clase == p.clase) poolArt.push_back(a);
 
-                random_shuffle(poolArmas.begin(), poolArmas.end());
-                random_shuffle(poolArt.begin(), poolArt.end());
+                mt19937 rng(static_cast<unsigned>(time(nullptr)));
+                shuffle(poolArmas.begin(), poolArmas.end(), rng);
+                shuffle(poolArt.begin(), poolArt.end(), rng);
 
                 for (int i = 0; i < 2 && i < (int)poolArmas.size(); i++) {
                     cout << idxCompra << ". " << poolArmas[static_cast<size_t>(i)].nombre
@@ -123,7 +125,7 @@ void entrarTienda(Personaje &p) {
                 }
             }
             else if (categoria == 3) { // --- RELIQUIAS ---
-                system("cls");
+                limpiarPantalla();
                 cout << "\n--- RELIQUIAS DEL MERCADER ---" << endl;
                 cout << "Ranuras disponibles: " << p.reliquias.size() << "/2" << endl;
                 cout << "----------------------------------------" << endl;
@@ -238,6 +240,6 @@ void entrarTienda(Personaje &p) {
             enMenu = false;
         }
 
-        if (opcion != 3) system("pause");
+        if (opcion != 3) esperarTecla();
     }
 }
