@@ -5,6 +5,7 @@
 #include <vector>
 #include <optional>
 
+
 // Declaraciones adelantadas (Forward Declarations)
 // Esto elimina los warnings de "tipo desconocido" sin necesidad de saturar con #includes
 struct Monstruo; 

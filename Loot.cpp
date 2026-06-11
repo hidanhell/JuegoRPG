@@ -214,8 +214,9 @@ void gestionarLootValdrame(Personaje& p) {
         }
 
         // Mostrar habilidad especial del arma
+        // CORRECCIÓN: obtenerHabilidadPorId retorna optional, desempacamos con value_or
         if (nW.habilidadId != 0) {
-            Habilidad hab = obtenerHabilidadPorId(nW.habilidadId);
+            Habilidad hab = obtenerHabilidadPorId(nW.habilidadId).value_or(Habilidad{0,"?","",0,0,"",0});
             cout << "  Habilidad especial [" << hab.nombre << "]:" << endl;
             cout << "    -> " << hab.descripcion << endl;
             cout << "    (Se activa automaticamente al realizar un golpe critico)" << endl;
@@ -230,8 +231,9 @@ void gestionarLootValdrame(Personaje& p) {
         if (tolower(c) == 's') {
             p.armaEquipada = nW;
             cout << "[OK] " << nW.nombre << " equipada." << endl;
+            // CORRECCIÓN: obtenerHabilidadPorId retorna optional, desempacamos con value_or
             if (nW.habilidadId != 0) {
-                Habilidad hab = obtenerHabilidadPorId(nW.habilidadId);
+                Habilidad hab = obtenerHabilidadPorId(nW.habilidadId).value_or(Habilidad{0,"?","",0,0,"",0});
                 cout << "[HABILIDAD] " << hab.nombre << " ahora esta activa en tu arma." << endl;
             }
         }

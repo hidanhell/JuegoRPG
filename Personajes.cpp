@@ -265,8 +265,9 @@ if (nivel >= 15 && clase == "Guerrero" && !tieneSubclase15) {
                 habilidadesIds.push_back(302);
             }
 
+            // CORRECCIÓN: obtenerHabilidadPorId retorna optional, usamos value_or
             cout << "---ULTIMATE DESBLOQUEADA: " 
-                 << obtenerHabilidadPorId(habilidadesIds.back()).nombre << "!" << endl;
+                 << obtenerHabilidadPorId(habilidadesIds.back()).value_or(Habilidad{0,"?","",0,0,"",0}).nombre << "!" << endl;
             tieneUltimate20 = true;
         }
 
@@ -387,8 +388,9 @@ if (nivel >= 15 && clase == "Guerrero" && !tieneSubclase15) {
                 habilidadesIds.push_back(312);
             }
 
+            // CORRECCIÓN: obtenerHabilidadPorId retorna optional, usamos value_or
             cout << "---ULTIMATE DESBLOQUEADA: " 
-                 << obtenerHabilidadPorId(habilidadesIds.back()).nombre << "!" << endl;
+                 << obtenerHabilidadPorId(habilidadesIds.back()).value_or(Habilidad{0,"?","",0,0,"",0}).nombre << "!" << endl;
             tieneUltimate20 = true;
         }
 
@@ -511,8 +513,9 @@ if (nivel >= 15 && clase == "Guerrero" && !tieneSubclase15) {
                 habilidadesIds.push_back(322);
             }
 
+            // CORRECCIÓN: obtenerHabilidadPorId retorna optional, usamos value_or
             cout << "---ULTIMATE DESBLOQUEADA: " 
-                 << obtenerHabilidadPorId(habilidadesIds.back()).nombre << "!" << endl;
+                 << obtenerHabilidadPorId(habilidadesIds.back()).value_or(Habilidad{0,"?","",0,0,"",0}).nombre << "!" << endl;
             tieneUltimate20 = true;
         }
 

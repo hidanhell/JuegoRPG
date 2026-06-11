@@ -6,6 +6,8 @@
 #include <optional>
 
 extern std::vector<Habilidad> listaHabilidadesGlobal;
+// CORRECCIÓN: listaEfectos no estaba declarada como extern en este archivo
+extern std::vector<Efecto> listaEfectos;
 
 // ==========================
 // FUNCIÓN GLOBAL DE ACCESO

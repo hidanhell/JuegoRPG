@@ -1,54 +1,56 @@
 {
-    "version": "2.0.0",
-    "tasks": [
-        {
-            "label": "build",
-            "type": "shell",
-            "command": "g++",
-            "args": [
-                "-std=c++17",
-                "Motor.cpp",
-                "Combate.cpp",
-                "Personajes.cpp",
-                "Loot.cpp",
-                "Tienda.cpp",
-                "Utilidades.cpp",
-                "Monstruos.cpp",
-                "Monstruos_Data.cpp",
-                "Habilidades.cpp",
-                "HabilidadesData.cpp",
-                "HabilidadesMonstruo.cpp",
-                "Efectos.cpp",
-                "Efectos_Data.cpp",
-                "Armas.cpp",
-                "Artefactos.cpp",
-                "Reliquias.cpp",
-                "ReliquiasDatos.cpp",
-                "Consumibles.cpp",
-                "CatalogoObjetos.cpp",
-                "Rng.cpp",
-                "IO.cpp",
-                "-o",
-                "${workspaceFolder}/Reino"
-            ],
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            },
-            "problemMatcher": ["$gcc"]
-        },
-        {
-            "label": "build & run",
-            "type": "shell",
-            "command": "${workspaceFolder}/Reino",
-            "dependsOn": "build",
-            "presentation": {
-                "echo": true,
-                "reveal": "always",
-                "focus": true,
-                "panel": "new"
-            },
-            "group": "test"
-        }
-    ]
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "build",
+      "type": "shell",
+      "command": "g++",
+      "args": [
+        "-std=c++17",
+        "-Wall",
+        "-Wextra",
+        "Motor.cpp",
+        "Combate.cpp",
+        "Personajes.cpp",
+        "Loot.cpp",
+        "Tienda.cpp",
+        "Utilidades.cpp",
+        "Monstruos.cpp",
+        "Monstruos_Data.cpp",
+        "Habilidades.cpp",
+        "HabilidadesData.cpp",
+        "HabilidadesMonstruo.cpp",
+        "Efectos.cpp",
+        "Efectos_Data.cpp",
+        "Armas.cpp",
+        "Artefactos.cpp",
+        "Reliquias.cpp",
+        "ReliquiasDatos.cpp",
+        "Consumibles.cpp",
+        "CatalogoObjetos.cpp",
+        "Rng.cpp",
+        "IO.cpp",
+        "-o",
+        "${workspaceFolder}/build/Debug/outDebug.exe"
+      ],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": ["$gcc"]
+    },
+    {
+      "label": "build & run",
+      "type": "shell",
+      "command": "${workspaceFolder}/build/Debug/outDebug.exe",
+      "dependsOn": "build",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": true,
+        "panel": "new"
+      },
+      "group": "test"
+    }
+  ]
 }

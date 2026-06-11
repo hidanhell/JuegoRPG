@@ -4,6 +4,7 @@
 #include <string>
 #include <optional>
 
+
 // --- Efecto ---
 struct Efecto {
     int id;                 // Identificador único
