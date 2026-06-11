@@ -9,7 +9,7 @@
 using namespace std;
 
 // =========================================================
-// BLOQUE 4: Personajes     Version 1.30
+// BLOQUE 4: Personajes     Version 1.32
 // =========================================================
 
 // Inicio del personaje con Atributos Base
@@ -18,10 +18,18 @@ Personaje::Personaje(string n, int tipo) {
     
     // Inicialización de equipo base
     artefactoEquipado = Artefacto(0, "Ninguno", 0, "Comun", 0, "Ninguno", 0, 0); 
-    armaEquipada = Arma(0, "Manos", 2, "Comun", 0, "Ninguno", 0, 0);            
+    armaEquipada = Arma(0, "Manos", 2, "Comun", 0, "Ninguno", 0, 0, 0); // 9 args: agrega habilidadId = 0
     
     usadaPluma = false;
     bonusCritico = 0;
+
+    // --- NUEVO 1.32: Flags de combate para las Ultimates de nivel 20 ---
+    // ultimoTurnoAtaco: Flecha del Juicio Final requiere haber atacado el turno anterior
+    // turnosAgotado: Colapso Solar bloquea habilidades N turnos tras usarla
+    // turnosEscudoCompanero: Pacto de Sangre — el companero absorbe el proximo golpe
+    ultimoTurnoAtaco      = false;
+    turnosAgotado         = 0;
+    turnosEscudoCompanero = 0;
     
     // Asignación de Atributos por Clase
     if (tipo == 1) { // Guerrero: Enfocado en Fuerza y Vitalidad
@@ -225,6 +233,43 @@ if (nivel >= 15 && clase == "Guerrero" && !tieneSubclase15) {
     tieneSubclase15 = true;
 }
 
+        //-----Habilidades Ultimate Nivel 20 (Guerrero)
+        // NUEVO 1.32: El jugador no elige, la ultimate se asigna segun la subclase de nivel 15.
+        // Paladin -> Ira del Cielo (ID 301) | Berserker -> Ultima Bestia (ID 302)
+        // tieneUltimate20 evita que se repita si subes mas de un nivel de golpe.
+        if (nivel >= 20 && clase == "Guerrero" && !tieneUltimate20) {
+            cout << "\n========================================" << endl;
+            cout << "  NIVEL 20 — EL PODER DEFINITIVO" << endl;
+            cout << "  Tu voluntad como guerrero alcanza su cima." << endl;
+            cout << "========================================" << endl;
+
+            // Buscamos el ID de subclase elegida en nivel 15
+            bool esPaladin = false;
+            for (int id : habilidadesIds) {
+                if (id == 201) { esPaladin = true; break; }
+            }
+
+            if (esPaladin) {
+                // IRA DEL CIELO: Dano = defensaBase*2.5 + ataqueBase
+                // Paralisis garantizada 2 turnos + autocura 15% hpMax
+                cout << "Como PALADIN, desbloqueas IRA DEL CIELO:\n";
+                cout << "Golpe sagrado devastador. Paralisis garantizada 2 turnos. Te curas 15% HP.\n";
+                habilidadesIds.push_back(301);
+            } else {
+                // ULTIMA BESTIA: ataqueBase*1.8 por golpe, 6-9 golpes aleatorios
+                // Si mata -> recuperas el 10% HP de autodano
+                // Si NO mata -> pierdes 10% HP propio + enemigo pierde 40% defensa por 2 turnos
+                cout << "Como BERSERKER, desbloqueas ULTIMA BESTIA:\n";
+                cout << "Frenesi de 6 a 9 golpes devastadores.\n";
+                cout << "Si mata: recuperas 10% HP. Si no mata: pierdes 10% HP y rompes la armadura enemiga -40% por 2 turnos.\n";
+                habilidadesIds.push_back(302);
+            }
+
+            cout << "---ULTIMATE DESBLOQUEADA: " 
+                 << obtenerHabilidadPorId(habilidadesIds.back()).nombre << "!" << endl;
+            tieneUltimate20 = true;
+        }
+
 //------------------Mago------------------
 
         //-----Habilidades Pasivas Nivel 5
@@ -291,7 +336,6 @@ if (nivel >= 15 && clase == "Guerrero" && !tieneSubclase15) {
 
 
         //-----Habilidades Pasivas Nivel 15 (Subclases)
-
         if (nivel >= 15 && clase == "Mago" && !tieneSubclase15) {
             cout << "\nHas alcanzado el nivel 15. Tu camino se define..." << endl;
             cout << "Debes elegir tu subclase:\n";
@@ -311,6 +355,41 @@ if (nivel >= 15 && clase == "Guerrero" && !tieneSubclase15) {
             cout << "---Has desbloqueado la subclase:--- " 
                  << obtenerHabilidadPorId(habilidadesIds.back()).nombre << "!" << endl;
             tieneSubclase15 = true;
+        }
+
+        //-----Habilidades Ultimate Nivel 20 (Mago)
+        // NUEVO 1.32: Mago Fuego -> Colapso Solar (ID 311) | Mago Hielo -> Absoluto Cero (ID 312)
+        if (nivel >= 20 && clase == "Mago" && !tieneUltimate20) {
+            cout << "\n========================================" << endl;
+            cout << "  NIVEL 20 — EL PODER DEFINITIVO" << endl;
+            cout << "  La magia en ti alcanza su forma mas pura." << endl;
+            cout << "========================================" << endl;
+
+            bool esFuego = false;
+            for (int id : habilidadesIds) {
+                if (id == 211) { esFuego = true; break; }
+            }
+
+            if (esFuego) {
+                // COLAPSO SOLAR: Dano = inteligencia*3.5
+                // Quemadura garantizada 3 turnos
+                // Debuff propio: turnosAgotado = 1 (no puede usar habilidades ese turno)
+                cout << "Como MAGO DE FUEGO, desbloqueas COLAPSO SOLAR:\n";
+                cout << "Una estrella en miniatura. Quemadura garantizada 3 turnos.\n";
+                cout << "ADVERTENCIA: Te deja agotado 1 turno. No podras usar habilidades ese turno.\n";
+                habilidadesIds.push_back(311);
+            } else {
+                // ABSOLUTO CERO: Dano = inteligencia*2.0 (x2 si enemigo ya congelado)
+                // Congelacion garantizada 3 turnos + reduce ATQ enemigo -30% mientras dure
+                cout << "Como MAGO DE HIELO, desbloqueas ABSOLUTO CERO:\n";
+                cout << "El tiempo se detiene. Congelacion garantizada 3 turnos y -30% ATQ enemigo.\n";
+                cout << "COMBO: Si el enemigo ya esta congelado, el dano se DUPLICA.\n";
+                habilidadesIds.push_back(312);
+            }
+
+            cout << "---ULTIMATE DESBLOQUEADA: " 
+                 << obtenerHabilidadPorId(habilidadesIds.back()).nombre << "!" << endl;
+            tieneUltimate20 = true;
         }
 
 //------------------Cazador------------------
@@ -399,6 +478,44 @@ if (nivel >= 15 && clase == "Guerrero" && !tieneSubclase15) {
             tieneSubclase15 = true;
         }
 
+        //-----Habilidades Ultimate Nivel 20 (Cazador)
+        // NUEVO 1.32: Punteria -> Flecha del Juicio Final (ID 321) | Bestias -> Pacto de Sangre (ID 322)
+        if (nivel >= 20 && clase == "Cazador" && !tieneUltimate20) {
+            cout << "\n========================================" << endl;
+            cout << "  NIVEL 20 — EL PODER DEFINITIVO" << endl;
+            cout << "  Tu precision y tus instintos llegan al limite." << endl;
+            cout << "========================================" << endl;
+
+            bool esPunteria = false;
+            for (int id : habilidadesIds) {
+                if (id == 221) { esPunteria = true; break; }
+            }
+
+            if (esPunteria) {
+                // FLECHA DEL JUICIO FINAL: Dano = destreza*2.0 + ataqueBase*1.5
+                // Ignora completamente la defensa del enemigo
+                // 50% de chance de veneno 3 turnos
+                // REQUISITO: ultimoTurnoAtaco == true (debes haber atacado el turno anterior)
+                cout << "Como maestro de PUNTERIA, desbloqueas FLECHA DEL JUICIO FINAL:\n";
+                cout << "El disparo definitivo. Ignora toda la defensa del enemigo.\n";
+                cout << "REQUISITO: Debes haber atacado el turno anterior para cargar el disparo.\n";
+                cout << "50% de chance de aplicar veneno 3 turnos.\n";
+                habilidadesIds.push_back(321);
+            } else {
+                // PACTO DE SANGRE: Dano = destreza*1.5 (tu) + destreza*1.0 (companero)
+                // Sangrado garantizado (tu ataque) + Veneno garantizado (companero)
+                // turnosEscudoCompanero = 1: el companero absorbe el proximo golpe que recibirias
+                cout << "Como maestro de BESTIAS, desbloqueas PACTO DE SANGRE:\n";
+                cout << "Tu y tu companero atacan como uno. Dano doble.\n";
+                cout << "Sangrado + Veneno garantizados. Tu companero absorbe el proximo golpe que recibirias.\n";
+                habilidadesIds.push_back(322);
+            }
+
+            cout << "---ULTIMATE DESBLOQUEADA: " 
+                 << obtenerHabilidadPorId(habilidadesIds.back()).nombre << "!" << endl;
+            tieneUltimate20 = true;
+        }
+
         // Finalización del ciclo de subida de nivel
         expNecesaria = nivel * 50; 
     }
@@ -439,6 +556,6 @@ void Personaje::actualizarEstadisticas() {
        En la Versión 1.30, los incrementos son acumulativos en subirNivel()
        para respetar los bonos elegidos por el usuario.
        Esta función queda como puente técnico para futuras expansiones
-       (como un sistema de 'Respec' o reinicio de talentos).
+       (como un sistema de 'Respec' o reinicio de talentos, o el NG+).
     */
 }
