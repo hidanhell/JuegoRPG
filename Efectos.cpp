@@ -1,7 +1,18 @@
 #include "efectos.h"
+#include "Rng.h"
 #include <iostream>
-#include <cstdlib>
 #include <vector>
+
+extern std::vector<Efecto> listaEfectos;
+extern std::vector<Efecto> listaEfectosLegendarios;
+
+std::optional<Efecto> obtenerEfectoPorId(int id) {
+    for (const auto& e : listaEfectos)
+        if (e.id == id) return e;
+    for (const auto& e : listaEfectosLegendarios)
+        if (e.id == id) return e;
+    return std::nullopt;
+}
 
 // --- Constructor ---
 Efecto::Efecto(int i, std::string n, std::string t, int d, int in)
@@ -40,28 +51,28 @@ void Efecto::aplicar(int &hp, int hpMax, bool &turnoPerdido) const {
             break;
 
         case 4: // Paralisis
-            if (rand() % 100 < intensidad) {
+            if (Rng::get().probabilidad(intensidad)) {
                 turnoPerdido = true;
                 std::cout << "[EFECTO] Paralisis te impide actuar este turno.\n";
             }
             break;
 
         case 5: // Evasion
-            if (rand() % 100 < intensidad) {
+            if (Rng::get().probabilidad(intensidad)) {
                 turnoPerdido = true;
                 std::cout << "[EFECTO] ¡El ataque fue evadido!\n";
             }
             break;
 
         case 6: // Congelacion
-            if (rand() % 100 < intensidad) {
+            if (Rng::get().probabilidad(intensidad)) {
                 turnoPerdido = true;
                 std::cout << "[EFECTO] Congelación te inmoviliza este turno.\n";
             }
             break;
 
         case 7: // Desorientacion Arcana
-            if (rand() % 100 < intensidad) {
+            if (Rng::get().probabilidad(intensidad)) {
                 turnoPerdido = true; // opción simple: perder turno
                 std::cout << "[EFECTO] La energía arcana te desorienta, fallas tu acción.\n";
             }
@@ -111,12 +122,12 @@ void aplicarEfectoLegendario(const Efecto &efecto, int &hpObjetivo, int ataqueBa
 
         case 204: // Dios del Caos
             // Paralisis 25%
-            if (rand() % 100 < efecto.intensidad) {
+            if (Rng::get().probabilidad(efecto.intensidad)) {
                 turnoPerdido = true;
                 std::cout << "[LEGENDARIO] Dios del Caos paraliza al objetivo.\n";
             }
             // Curación 25%
-            if (rand() % 100 < efecto.intensidad) {
+            if (Rng::get().probabilidad(efecto.intensidad)) {
                 int curacion = (int)(hpMaxAtacante * 0.15);
                 hpAtacante += curacion;
                 if (hpAtacante > hpMaxAtacante) hpAtacante = hpMaxAtacante;

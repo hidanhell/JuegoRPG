@@ -3,7 +3,7 @@
 #include "Personajes.h"
 #include "Efectos.h"
 #include <iostream>
-#include <cstdlib>
+#include "Rng.h"
 #include <algorithm> // Para usar max y min sin problemas
 
 using namespace std;
@@ -25,11 +25,10 @@ vector<HabilidadMonstruo> listaHabilidadesMonstruo = {
     {402, "El Punio Santo",       "Golpe sagrado de poder divino oscuro",  "Sagrado",    0, 0.0f}
 };
 
-HabilidadMonstruo obtenerHabilidadMonstruo(int id) {
-    for (auto &h : listaHabilidadesMonstruo) {
+std::optional<HabilidadMonstruo> obtenerHabilidadMonstruo(int id) {
+    for (auto &h : listaHabilidadesMonstruo)
         if (h.id == id) return h;
-    }
-    return {0, "Ninguna", "-", "Nulo", 0, 0.0f};
+    return std::nullopt;
 }
 
 void asignarHabilidadesMonstruo(Monstruo &m) {
@@ -48,11 +47,11 @@ void asignarHabilidadesMonstruo(Monstruo &m) {
     bool esCobarde = (m.velocidad > m.ataque * 2);
 
     if (esCobarde) {
-        m.habilidadesIds.push_back(rand() % 2 == 0 ? 301 : 304);
+        m.habilidadesIds.push_back(Rng::get().probabilidad(50) ? 301 : 304);
     } else if (esMagico) {
-        m.habilidadesIds.push_back(rand() % 2 == 0 ? 305 : 306);
+        m.habilidadesIds.push_back(Rng::get().probabilidad(50) ? 305 : 306);
     } else {
-        m.habilidadesIds.push_back(rand() % 2 == 0 ? 302 : 303);
+        m.habilidadesIds.push_back(Rng::get().probabilidad(50) ? 302 : 303);
     }
 }
 
@@ -60,8 +59,9 @@ void asignarHabilidadesMonstruo(Monstruo &m) {
 extern std::vector<Efecto> listaEfectos;
 
 bool ejecutarHabilidadMonstruo(Monstruo &m, Personaje &p, int idHabilidad) {
-    HabilidadMonstruo hab = obtenerHabilidadMonstruo(idHabilidad);
-    if (hab.id == 0) return false;
+    auto habOpt = obtenerHabilidadMonstruo(idHabilidad);
+    if (!habOpt) return false;
+    HabilidadMonstruo hab = *habOpt;
 
     cout << "[ENE] " << m.nombre << " usa " << hab.nombre << "!" << endl;
 
@@ -71,7 +71,7 @@ bool ejecutarHabilidadMonstruo(Monstruo &m, Personaje &p, int idHabilidad) {
             int chanceHuida = 40 + (m.velocidad / 5);
             chanceHuida = max(20, min(chanceHuida, 80));
 
-            if (rand() % 100 < chanceHuida) {
+            if (Rng::get().probabilidad(chanceHuida)) {
                 cout << "[ENE] " << m.nombre << " huye cobardemente!" << endl;
                 cout << "[INFO] El combate termina sin recompensa." << endl;
                 m.hp = 0; 

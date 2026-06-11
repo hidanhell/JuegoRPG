@@ -6,9 +6,8 @@
 #include "combate.h"       // obtenerEfectoPorId ya declarada aquí
 #include "loot.h"
 #include "tienda.h"
+#include "Rng.h"
 #include <iostream>
-#include <cstdlib>
-#include <ctime>
 #include <map>
 #include <cctype>
 #include "catalogoObjetos.h"
@@ -22,7 +21,6 @@
 using namespace std;
 
 int main() {
-    srand((unsigned)time(0));
     string nombreUser;
     int tipoClase;
 
@@ -44,7 +42,7 @@ int main() {
     char decision; cin >> decision;
 
     // Primero pedimos nombre y clase para poder asignar el arma correcta
-    system("cls");
+    limpiarPantalla();
     cout << "Al salir de la casa, un viento frio golpea tu rostro." << endl;
     cout << "Tu mente comienza a aclararse... recuerdas tu nombre y tu senda." << endl;
     cout << "Dime tu nombre: "; 
@@ -70,14 +68,14 @@ int main() {
 
         p.armaEquipada = inicial;
         p.inventario.push_back(listaConsumibles[0]);
-        system("pause");
+        esperarTecla();
     } else {
         cout << "\nDecides salir sin abrir el cofre. El mundo sera mas hostil sin ayuda inicial." << endl;
-        system("pause");
+        esperarTecla();
     }
 
     while (true) {
-        system("cls");
+        limpiarPantalla();
         cout << "ESTAS EN: " << obtenerNombreZona(p.posY) << endl;
         cout << "POSICION: [X: " << p.posX << " | Y: " << p.posY << "]" << endl;
 
@@ -85,7 +83,7 @@ int main() {
         cout << "=============== " << p.nombre << " (" << p.clase;
         if (p.tieneSubclase15) {
             int idSubclase = p.habilidadesIds.back();
-            cout << " ===> " << obtenerHabilidadPorId(idSubclase).nombre;
+            if (auto h = obtenerHabilidadPorId(idSubclase)) cout << " ===> " << h->nombre;
         }
         cout << ") ===============\n";
 
@@ -127,7 +125,7 @@ int main() {
                 lanzarDialogoAmbiental(p.posY);
 
                 // 30% de probabilidad de combate aleatorio
-                if (p.posY < 241 && rand() % 100 < 30) {
+                if (p.posY < 241 && Rng::get().probabilidad(30)) {
                     iniciarCombate(p, p.posY);
                 }
             }
@@ -141,7 +139,7 @@ int main() {
             }
         }
         else if (input == 'p') {
-            system("cls");
+            limpiarPantalla();
 
             mostrarCabecera("STATUS DE " + p.nombre);
 
@@ -149,7 +147,7 @@ int main() {
             cout << "Clase: " << p.clase;
             if (p.tieneSubclase15) {
                 int idSubclase = p.habilidadesIds.back();
-                cout << " → " << obtenerHabilidadPorId(idSubclase).nombre;
+                if (auto h = obtenerHabilidadPorId(idSubclase)) cout << " → " << h->nombre;
             }
             cout << "\nNivel: " << p.nivel 
                  << " | EXP: " << p.exp << "/" << (p.nivel * 50) 
@@ -174,21 +172,17 @@ int main() {
             cout << "\n=============== Equipamiento ===============\n";
             cout << "Arma: " << p.armaEquipada.nombre 
                  << " (+" << p.armaEquipada.poder << " ATQ)";
-            if (p.armaEquipada.efectoId > 0) {
-                Efecto ef = obtenerEfectoPorId(p.armaEquipada.efectoId);
-                cout << " [Efecto: " << ef.nombre << "]";
-            } else {
+            if (auto ef = obtenerEfectoPorId(p.armaEquipada.efectoId))
+                cout << " [Efecto: " << ef->nombre << "]";
+            else
                 cout << " [Sin efecto]";
-            }
 
-            cout << "\nArtefacto: " << p.artefactoEquipado.nombre 
+            cout << "\nArtefacto: " << p.artefactoEquipado.nombre
                  << " (+" << p.artefactoEquipado.defensa << " DEF)";
-            if (p.artefactoEquipado.efectoId > 0) {
-                Efecto efArt = obtenerEfectoPorId(p.artefactoEquipado.efectoId);
-                cout << " [Efecto: " << efArt.nombre << "]";
-            } else {
+            if (auto ef = obtenerEfectoPorId(p.artefactoEquipado.efectoId))
+                cout << " [Efecto: " << ef->nombre << "]";
+            else
                 cout << " [Sin efecto]";
-            }
 
             // Inventario abreviado
             cout << "\n\n=============== Inventario (max 10) ===============\n";
@@ -237,7 +231,7 @@ int main() {
 
         // --- Encuentro final con Lancelot ---
         if (p.posY == 241) {
-            system("cls");
+            limpiarPantalla();
             mostrarCabecera("EL TRONO DEL REY DRAGON");
             cout << "Lancelot te espera sentado en un trono de huesos." << endl;
             cout << "Antes de avanzar, ves un Cofre Divino." << endl;
@@ -252,7 +246,7 @@ int main() {
                 p.armaEquipada = legend;
                 for (int i = 0; i < 3; i++) p.inventario.push_back(listaConsumibles[2]); 
                 cout << "\n--HAS OBTENIDO " << legend.nombre << " Y 3 POCIONES ALTAS--" << endl;
-                system("pause");
+                esperarTecla();
             }
 
             cout << "\n--Es el momento de la venganza-- (S/N): ";
@@ -261,10 +255,10 @@ int main() {
                 iniciarCombate(p, 241);
 
                 if (p.hp > 0 && p.posY == 241) {
-                    system("cls");
+                    limpiarPantalla();
                     cout << "--Lancelot ha caido! El cielo se aclara por primera vez en decadas." << endl;
                     cout << "Has completado tu destino, " << p.nombre << "." << endl;
-                    system("pause");
+                    esperarTecla();
                     break;
                 }
             } else {

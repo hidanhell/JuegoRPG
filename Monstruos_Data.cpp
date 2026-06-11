@@ -2,7 +2,7 @@
 #include "HabilidadesMonstruo.h"
 #include <vector>
 #include <ctime>
-#include <cstdlib>
+#include "Rng.h"
 #include <iostream>
 #include <algorithm> // Para usar std::max y std::min si fuera necesario
 
@@ -60,7 +60,7 @@ int obtenerNivelAleatorio(int zona) {
     int minLvl = (zona - 1) * 5 + 1;
     int maxLvl = zona * 5;
     if (zona >= 5) return 30; // Nivel maximo para el Rey Dragon
-    return minLvl + (rand() % (maxLvl - minLvl + 1));
+    return Rng::get().entre(minLvl, maxLvl);
 }
 
 Monstruo construirMonstruo(PlantillaMonstruo p, int zona, int nivelFijo = -1) {
@@ -90,10 +90,10 @@ Monstruo construirMonstruo(PlantillaMonstruo p, int zona, int nivelFijo = -1) {
     m.vitalidad    = vit;
     m.esElite      = p.esElite; // Propagamos el flag de elite al monstruo
 
-    // Naturaleza aleatoria (Lancelot tiene naturaleza Divina fija, Valdrame no tiene)
-    if (!p.esJefe && !p.esElite) {
-        aplicarNaturaleza(m, listaNaturalezas[rand() % 5]);
-    } else if (p.esJefe) {
+    // Naturaleza aleatoria (Lancelot tiene naturaleza Divina fija)
+    if (!p.esJefe) {
+        aplicarNaturaleza(m, listaNaturalezas[Rng::get().entre(0, 4)]);
+    } else {
         m.naturaleza = "Divina";
     }
     // Los Elites no tienen naturaleza — son unicos y sus stats son fijos por diseño

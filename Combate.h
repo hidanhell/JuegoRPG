@@ -2,6 +2,7 @@
 #include "Personajes.h"
 #include "Monstruos.h"
 #include "Efectos.h"
+#include <optional>
 
 // --- Control de Estado ---
 enum class EstadoCombate {
@@ -20,7 +21,8 @@ struct ContextoCombate {
 };
 
 // --- Generación de Enemigos ---
-Monstruo generarEnemigo(int zonaActual);
+// Devuelve std::nullopt si no hay monstruos disponibles para la zona.
+std::optional<Monstruo> generarEnemigo(int zonaActual);
 
 // --- Núcleo de Combate ---
 void iniciarCombate(Personaje &p, int zonaActual);
@@ -35,5 +37,3 @@ void resolverFinCombate(Personaje &p, ContextoCombate &contexto, EstadoCombate r
 void mostrarMenuCombate(const ContextoCombate &contexto);
 void usarHabilidad(Personaje* lanzador, Monstruo* objetivo, int idHabilidad);
 
-// --- Función auxiliar de efectos (accesible desde motor.cpp via este header) ---
-Efecto obtenerEfectoPorId(int id);

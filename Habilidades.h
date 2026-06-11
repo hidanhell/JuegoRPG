@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <string>
+#include <optional>
 #include "Personajes.h"
 #include "Monstruos.h"
 #include "Efectos.h"
@@ -28,7 +29,11 @@ extern std::vector<Habilidad> listaHabilidadesGlobal;
 // ==========================
 // FUNCIONES
 // ==========================
-Habilidad obtenerHabilidadPorId(int id);
+
+// Buscar habilidad por ID. Devuelve std::nullopt si no existe.
+std::optional<Habilidad> obtenerHabilidadPorId(int id);
+
+// Ejecutar habilidad activa en combate
 void ejecutarHabilidad(Personaje &pj, Monstruo &m, int idHabilidad);
 void aplicarSubclase(Personaje &pj, int idHabilidad);
 

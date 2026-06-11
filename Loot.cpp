@@ -6,7 +6,7 @@
 #include "catalogoObjetos.h"
 #include "Habilidades.h"
 #include <iostream>
-#include <cstdlib>
+#include "Rng.h"
 #include <vector>
 #include <cmath>
 #include "Consumibles.h"
@@ -22,7 +22,7 @@ void gestionarLoot(Personaje &p, int y, bool raro)
     int z = (y <= 60) ? 1 : (y <= 120) ? 2 : (y <= 180) ? 3 : 4;
 
     // --- SISTEMA DE CONSUMIBLES ---
-    if ((rand() % 100) < 25) {
+    if (Rng::get().probabilidad(25)) {
         if (p.inventario.size() < 10u) {
             std::vector<Consumible> posibles;
             for (const auto& item : listaConsumibles) {
@@ -35,7 +35,7 @@ void gestionarLoot(Personaje &p, int y, bool raro)
             }
 
             if (!posibles.empty()) {
-                int index = rand() % static_cast<int>(posibles.size());
+                int index = Rng::get().entre(0, (int)posibles.size() - 1);
                 Consumible lootObtenido = posibles[static_cast<size_t>(index)];
                 p.inventario.push_back(lootObtenido);
 
@@ -50,8 +50,8 @@ void gestionarLoot(Personaje &p, int y, bool raro)
     }
 
     // --- SISTEMA DE ARMAS ---
-    int sArma = rand() % 100 + 1;
-    Arma nW(0, "-", 0, "Ninguno", 0, "Ninguno", 0, 0, 0);
+    int sArma = Rng::get().entre(1, 100);
+    Arma nW(0, "-", 0, "Ninguno", 0, "Ninguno", 0, 0); 
     float m = raro ? 1.2f : 1.0f;
 
     if (sArma <= 40) {
@@ -67,7 +67,7 @@ void gestionarLoot(Personaje &p, int y, bool raro)
         }
 
         if (!posibles.empty()) {
-            size_t index = static_cast<size_t>(rand() % static_cast<int>(posibles.size()));
+            size_t index = static_cast<size_t>(Rng::get().entre(0, (int)posibles.size() - 1));
             nW = posibles[index];
             nW.poder = static_cast<int>(std::round(static_cast<float>(nW.poder) * m));
 
@@ -88,13 +88,13 @@ void gestionarLoot(Personaje &p, int y, bool raro)
 
     // --- SISTEMA DE ARTEFACTOS ---
     if (p.esBerserker) {
-        int sArtefacto = rand() % 100 + 1;
+        int sArtefacto = Rng::get().entre(1, 100);
         if (sArtefacto <= 30) {
             cout << "\n[!] Viste un artefacto entre los restos, pero como Berserker prefieres tus manos libres." << endl;
         }
-    }
-    else {
-        int sArtefacto = rand() % 100 + 1;
+    } 
+    else { 
+        int sArtefacto = Rng::get().entre(1, 100);
         Artefacto nA(0, "-", 0, "Ninguno", 0, "Ninguno", 0, 0);
         float mA = raro ? 1.2f : 1.0f;
 
@@ -111,7 +111,7 @@ void gestionarLoot(Personaje &p, int y, bool raro)
             }
 
             if (!posibles.empty()) {
-                int index = rand() % static_cast<int>(posibles.size());
+                int index = Rng::get().entre(0, (int)posibles.size() - 1);
                 nA = posibles[static_cast<size_t>(index)];
                 nA.defensa = static_cast<int>(static_cast<float>(nA.defensa) * mA);
 
@@ -135,7 +135,7 @@ void gestionarLoot(Personaje &p, int y, bool raro)
     }
 
     // --- SISTEMA DE RELIQUIAS ---
-    if ((rand() % 100) < 15 && p.reliquias.size() < 2) {
+    if (Rng::get().probabilidad(15) && p.reliquias.size() < 2) {
 
         std::vector<Reliquia> posibles;
         for (const auto& rel : listaReliquias) {
@@ -147,7 +147,7 @@ void gestionarLoot(Personaje &p, int y, bool raro)
         }
 
         if (!posibles.empty()) {
-            Reliquia r = posibles[static_cast<size_t>(rand() % static_cast<int>(posibles.size()))];
+            Reliquia r = posibles[static_cast<size_t>(Rng::get().entre(0, (int)posibles.size() - 1))];
             p.reliquias.push_back(r.nombre);
             cout << "[RELIQUIA] Has encontrado " << r.nombre << "! (" << r.efecto << ")" << endl;
 
@@ -292,20 +292,20 @@ string obtenerNombreZona(int y)
 
 // --- DIÁLOGOS AMBIENTALES ---
 void lanzarDialogoAmbiental(int y) {
-    if (rand() % 100 < 15) {
+    if (Rng::get().probabilidad(15)) {
         cout << "\n[PENSAMIENTO] ";
         if (y <= 60) {
             string f[] = {"Las ventanas de la aldea estan selladas...", "Sientes ojos observandote tras las cortinas.", "El aire huele a madera vieja y miedo."};
-            cout << f[rand()%3] << endl;
+            cout << f[Rng::get().entre(0, 2)] << endl;
         } else if (y <= 120) {
             string f[] = {"El crujir de las ramas suena como huesos.", "Una niebla espesa cubre tus botas.", "Algo se movio rapido entre los pinos..."};
-            cout << f[rand()%3] << endl;
+            cout << f[Rng::get().entre(0, 2)] << endl;
         } else if (y <= 180) {
             string f[] = {"El lodo burbujea con un sonido extraño.", "Susurros lejanos parecen decir tu nombre...", "Cada paso pesa mas en este fango."};
-            cout << f[rand()%3] << endl;
+            cout << f[Rng::get().entre(0, 2)] << endl;
         } else if (y <= 240) {
             string f[] = {"Ceniza volcanica cae del cielo gris.", "Un calor antinatural emana del suelo.", "El Castillo se alza imponente frente a ti."};
-            cout << f[rand()%3] << endl;
+            cout << f[Rng::get().entre(0, 2)] << endl;
         } else {
             string f[] = {
                 "El eco de tus pasos retumba en los salones vacios.",
@@ -313,8 +313,8 @@ void lanzarDialogoAmbiental(int y) {
                 "Sientes una presion inmensa en el pecho... el Rey esta cerca.",
                 "El frio del castillo cala hasta tus huesos, a pesar del fuego exterior."
             };
-            cout << f[rand()%4] << endl;
+            cout << f[Rng::get().entre(0, 3)] << endl;
         }
-        system("pause");
+        esperarTecla();
     }
 }

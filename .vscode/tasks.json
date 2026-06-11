@@ -6,52 +6,49 @@
             "type": "shell",
             "command": "g++",
             "args": [
+                "-std=c++17",
                 "Motor.cpp",
                 "Combate.cpp",
                 "Personajes.cpp",
                 "Loot.cpp",
                 "Tienda.cpp",
                 "Utilidades.cpp",
-                "Armas.cpp",
-                "Artefactos.cpp",
-                "CatalogoObjetos.cpp",
-                "Consumibles.cpp",
-                "Efectos.cpp",
-                "Efectos_Data.cpp",
+                "Monstruos.cpp",
+                "Monstruos_Data.cpp",
                 "Habilidades.cpp",
                 "HabilidadesData.cpp",
                 "HabilidadesMonstruo.cpp",
-                "Monstruos.cpp",
-                "Monstruos_Data.cpp",
+                "Efectos.cpp",
+                "Efectos_Data.cpp",
+                "Armas.cpp",
+                "Artefactos.cpp",
                 "Reliquias.cpp",
                 "ReliquiasDatos.cpp",
+                "Consumibles.cpp",
+                "CatalogoObjetos.cpp",
+                "Rng.cpp",
+                "IO.cpp",
                 "-o",
-                "D:/programas/JuegoRPG/Reino.exe"
+                "${workspaceFolder}/Reino"
             ],
             "group": {
                 "kind": "build",
                 "isDefault": true
-            }
+            },
+            "problemMatcher": ["$gcc"]
         },
         {
-            "label": "run",
+            "label": "build & run",
             "type": "shell",
-            "command": "cmd",
-            "args": [
-                "/c",
-                "start",
-                "\"\"",
-                "cmd",
-                "/k",
-                "D:/programas/JuegoRPG/Reino.exe"
-            ],
+            "command": "${workspaceFolder}/Reino",
             "dependsOn": "build",
             "presentation": {
                 "echo": true,
-                "reveal": "never",
-                "focus": false,
-                "panel": "shared"
-            }
+                "reveal": "always",
+                "focus": true,
+                "panel": "new"
+            },
+            "group": "test"
         }
     ]
 }
