@@ -3,6 +3,7 @@
 
 #include <string>
 #include <vector>
+#include <optional>
 
 // Declaraciones adelantadas (Forward Declarations)
 // Esto elimina los warnings de "tipo desconocido" sin necesidad de saturar con #includes
@@ -27,8 +28,8 @@ struct HabilidadMonstruo {
 // M01-M06: Habilidades genericas para Raros
 // M10+:    Habilidades unicas para Elites (futuro)
 
-// Acceso al catalogo
-HabilidadMonstruo obtenerHabilidadMonstruo(int id);
+// Acceso al catalogo. Devuelve std::nullopt si no existe.
+std::optional<HabilidadMonstruo> obtenerHabilidadMonstruo(int id);
 
 // Ejecucion de habilidad en combate
 // Retorna true si el monstruo huyo exitosamente

@@ -1,25 +1,27 @@
 #include "Habilidades.h"
 #include "Personajes.h"
 #include "Efectos.h"
+#include "Rng.h"
 #include <iostream>
+#include <optional>
 
-extern std::vector<Efecto> listaEfectos;
 extern std::vector<Habilidad> listaHabilidadesGlobal;
 // ==========================
 // FUNCIÓN GLOBAL DE ACCESO
 // ==========================
-Habilidad obtenerHabilidadPorId(int id) {
-    for (auto &h : listaHabilidadesGlobal) {
+std::optional<Habilidad> obtenerHabilidadPorId(int id) {
+    for (auto &h : listaHabilidadesGlobal)
         if (h.id == id) return h;
-    }
-    return {0, "Ninguna", "Sin efecto", 0, 0, "Nulo", 0};
+    return std::nullopt;
 }
 
 // ============================================
 // EJECUCIÓN DE HABILIDADES PERSONAJES
 // ============================================
 void ejecutarHabilidad(Personaje &pj, Monstruo &m, int idHabilidad) {
-    Habilidad hab = obtenerHabilidadPorId(idHabilidad);
+    auto habOpt = obtenerHabilidadPorId(idHabilidad);
+    if (!habOpt) return;
+    Habilidad hab = *habOpt;
     int dano = 0;
     bool turnoPerdido = false;
     switch (hab.id) {
@@ -28,28 +30,28 @@ void ejecutarHabilidad(Personaje &pj, Monstruo &m, int idHabilidad) {
             dano = pj.ataqueBase + static_cast<int>(pj.defensaBase * 1.4);
             m.hp -= dano;
             std::cout << "[HABILIDAD] " << hab.nombre << " inflige " << dano << " de dano.\n";
-            listaEfectos[4].aplicar(m.hp, m.hpMax, turnoPerdido); // Paralisis
+            if (auto ef = obtenerEfectoPorId(4)) ef->aplicar(m.hp, m.hpMax, turnoPerdido);
             break;
 
         case 102: // Tajo Sangriento
             dano = pj.ataqueBase + static_cast<int>(pj.fuerza * 1.3);
             m.hp -= dano;
             std::cout << "[HABILIDAD] " << hab.nombre << " inflige " << dano << " de dano.\n";
-            listaEfectos[3].aplicar(m.hp, m.hpMax, turnoPerdido); // Sangrado
+            if (auto ef = obtenerEfectoPorId(3)) ef->aplicar(m.hp, m.hpMax, turnoPerdido);
             break;
 
         case 103: // Frenesí
         {
-            int golpes = rand() % 3 + 2; // 2–4 golpes
+            int golpes = Rng::get().entre(2, 4);
             int danoTotal = 0;
             for (int i = 0; i < golpes; i++) {
                 int golpe = static_cast<int>(pj.ataqueBase * 1.5);
                 m.hp -= golpe;
                 danoTotal += golpe;
             }
-            std::cout << "[HABILIDAD] " << hab.nombre << " realiza " << golpes 
+            std::cout << "[HABILIDAD] " << hab.nombre << " realiza " << golpes
                       << " golpes e inflige un total de " << danoTotal << " de dano.\n";
-            listaEfectos[3].aplicar(m.hp, m.hpMax, turnoPerdido); // Sangrado
+            if (auto ef = obtenerEfectoPorId(3)) ef->aplicar(m.hp, m.hpMax, turnoPerdido);
         }
             break;
 
@@ -58,21 +60,21 @@ void ejecutarHabilidad(Personaje &pj, Monstruo &m, int idHabilidad) {
             dano = pj.inteligencia + static_cast<int>(pj.inteligencia * 1.4);
             m.hp -= dano;
             std::cout << "[HABILIDAD] " << hab.nombre << " inflige " << dano << " de dano.\n";
-            listaEfectos[1].aplicar(m.hp, m.hpMax, turnoPerdido); // Quemadura
+            if (auto ef = obtenerEfectoPorId(1)) ef->aplicar(m.hp, m.hpMax, turnoPerdido);
             break;
 
         case 112: // Bola de Escarcha
             dano = pj.inteligencia + static_cast<int>(pj.inteligencia * 1.4);
             m.hp -= dano;
             std::cout << "[HABILIDAD] " << hab.nombre << " inflige " << dano << " de dano.\n";
-            listaEfectos[6].aplicar(m.hp, m.hpMax, turnoPerdido); // Congelación
+            if (auto ef = obtenerEfectoPorId(6)) ef->aplicar(m.hp, m.hpMax, turnoPerdido);
             break;
 
         case 113: // Rayo Arcano
             dano = pj.inteligencia + static_cast<int>(pj.inteligencia * 1.4);
             m.hp -= dano;
             std::cout << "[HABILIDAD] " << hab.nombre << " inflige " << dano << " de dano.\n";
-            listaEfectos[7].aplicar(m.hp, m.hpMax, turnoPerdido); // Desorientación Arcana
+            if (auto ef = obtenerEfectoPorId(7)) ef->aplicar(m.hp, m.hpMax, turnoPerdido);
             break;
 
         // --- Cazador ---
@@ -80,7 +82,7 @@ void ejecutarHabilidad(Personaje &pj, Monstruo &m, int idHabilidad) {
             dano = pj.destreza + static_cast<int>(pj.destreza * 1.4);
             m.hp -= dano;
             std::cout << "[HABILIDAD] " << hab.nombre << " inflige " << dano << " de dano.\n";
-            listaEfectos[2].aplicar(m.hp, m.hpMax, turnoPerdido); // Veneno
+            if (auto ef = obtenerEfectoPorId(2)) ef->aplicar(m.hp, m.hpMax, turnoPerdido);
             break;
 
         case 122: // Disparo Preciso
@@ -92,7 +94,7 @@ void ejecutarHabilidad(Personaje &pj, Monstruo &m, int idHabilidad) {
 
         case 123: // Lluvia de Flechas
         {
-            int impactos = rand() % 3 + 3; // 3–5 impactos
+            int impactos = Rng::get().entre(3, 5);
             int danoTotal = 0;
             for (int i = 0; i < impactos; i++) {
                 int golpe = static_cast<int>(pj.destreza * 1.4);
@@ -101,7 +103,7 @@ void ejecutarHabilidad(Personaje &pj, Monstruo &m, int idHabilidad) {
             }
             std::cout << "[HABILIDAD] " << hab.nombre << " lanza " << impactos 
                       << " flechas e inflige un total de " << danoTotal << " de dano.\n";
-            listaEfectos[3].aplicar(m.hp, m.hpMax, turnoPerdido); // Sangrado
+            if (auto ef = obtenerEfectoPorId(3)) ef->aplicar(m.hp, m.hpMax, turnoPerdido);
         }
             break;
 
@@ -115,7 +117,9 @@ void ejecutarHabilidad(Personaje &pj, Monstruo &m, int idHabilidad) {
 // APLICAR SUBCLASE NIVEL 15 (Pasivas)
 // ============================================
 void aplicarSubclase(Personaje &pj, int idHabilidad) {
-    Habilidad hab = obtenerHabilidadPorId(idHabilidad);
+    auto habOpt = obtenerHabilidadPorId(idHabilidad);
+    if (!habOpt) return;
+    Habilidad hab = *habOpt;
 
     switch (hab.id) {
         // Guerrero

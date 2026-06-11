@@ -4,7 +4,7 @@
 #include "HabilidadesMonstruo.h" // NUEVO 1.31: Módulo de habilidades de enemigos
 #include <iostream>
 #include <algorithm>
-#include <cstdlib>
+#include "Rng.h"
 #include "Personajes.h"
 #include "Monstruos.h"
 #include "Efectos.h"
@@ -25,18 +25,8 @@ extern std::vector<Efecto> listaEfectosLegendarios;
 // Le avisa a este archivo que 'generarHorda' existe en otro lado (monstruosdatos.cpp)
 extern std::vector<Monstruo> generarHorda(int zonaDeseada); 
 
-// Función auxiliar para encontrar los datos de un efecto por su ID
-Efecto obtenerEfectoPorId(int id) {
-    for (const auto& e : listaEfectos) {
-        if (e.id == id) return e;
-    }
-    for (const auto& e : listaEfectosLegendarios) {
-        if (e.id == id) return e;
-    }
-    return Efecto(); 
-}
 
-Monstruo generarEnemigo(int y) {
+std::optional<Monstruo> generarEnemigo(int y) {
     // 1. Determinar zona
     int zona = (y <= 60) ? 1 : (y <= 120) ? 2 : (y <= 180) ? 3 : (y <= 240) ? 4 : 5;
 
@@ -45,7 +35,7 @@ Monstruo generarEnemigo(int y) {
     listaMonstruos = generarHorda(zona);
     // ------------------------------
 
-    bool esElite = (rand() % 100 < 25); 
+    bool esElite = Rng::get().probabilidad(25);
 
     std::vector<Monstruo> posibles;
     for (const auto& m : listaMonstruos) {
@@ -73,17 +63,17 @@ Monstruo generarEnemigo(int y) {
         }
     }
 
-    if (!posibles.empty()) {
-        return posibles[static_cast<size_t>(rand() % posibles.size())];
-    }
+    if (!posibles.empty())
+        return posibles[static_cast<size_t>(Rng::get().entre(0, (int)posibles.size() - 1))];
 
-    // Retorno de seguridad
-    return Monstruo{"Error", 1, 1, 1, 1, 0, 1, 1, false};
+    return std::nullopt;
 }
 
 void iniciarCombate(Personaje &p, int y) {
-    int turnosAbsorcion = 0; // Nueva variable para controlar la absorción de Lancelot
-    Monstruo m = generarEnemigo(y);
+    int turnosAbsorcion = 0;
+    auto mOpt = generarEnemigo(y);
+    if (!mOpt) return;
+    Monstruo m = *mOpt;
     int hpInicial = m.hp; // Mantengo tu variable para el HUD y las fases
     bool fase2 = false;
     bool fase3 = false;
@@ -96,7 +86,7 @@ void iniciarCombate(Personaje &p, int y) {
     mostrarCabecera(tituloCombate);
 
     while (p.hp > 0 && m.hp > 0) {
-        system("cls"); 
+        limpiarPantalla(); 
 
         // HUD Actualizado: Ahora incluye el Nivel del monstruo
         // NUEVO 1.31: Etiqueta [JEFE] para Lancelot
@@ -158,7 +148,7 @@ void iniciarCombate(Personaje &p, int y) {
             cout << "\n LANCELOT CAMBIA SUS ESCAMAS  Defensa aumentada." << endl;
             cout << "[MECANICA] Las escamas del Rey brillan con la magia corrupta de Angra." << endl;
             cout << "[PELIGRO] --Lancelot absorbera el dano de tus proximos--" << turnosAbsorcion << " ataques y lo convertira en vida!" << endl;
-            system("pause");
+            esperarTecla();
         }
 
         // --- FASE 3: LA FURIA DE ANGRA (Activa al 25% de HP) ---
@@ -188,7 +178,7 @@ void iniciarCombate(Personaje &p, int y) {
                 cout << "[SISTEMA] El poder del Caos te ha abrumado..." << endl;
             }
             
-            system("pause");
+            esperarTecla();
         }
 
 
@@ -208,7 +198,7 @@ void iniciarCombate(Personaje &p, int y) {
 
                 if (opc == 1) { // ATAQUE BÁSICO (Tu lógica original)
                     int dTotal = p.ataqueBase + p.armaEquipada.poder;
-                    bool esCritico = (rand() % 100 < (5 + p.bonusCritico));
+                    bool esCritico = Rng::get().probabilidad(5 + p.bonusCritico);
                     int danoReal = max(2, dTotal - m.defensa);
 
                     if (esCritico) {
@@ -226,11 +216,10 @@ void iniciarCombate(Personaje &p, int y) {
                     cout << "[TI] " << p.nombreAtaque << " causa " << danoReal << " de dano." << endl;
 
                     if (p.armaEquipada.efectoId > 0 && m.hp > 0) {
-                        if (rand() % 100 < 30) { 
-                            Efecto ef = obtenerEfectoPorId(p.armaEquipada.efectoId);
-                            if (ef.id != 0) {
-                                m.efectosActivos.push_back(ef);
-                                cout << "[ESTADO] Aplicaste " << ef.nombre << "-" << endl;
+                        if (Rng::get().probabilidad(30)) {
+                            if (auto ef = obtenerEfectoPorId(p.armaEquipada.efectoId)) {
+                                m.efectosActivos.push_back(*ef);
+                                cout << "[ESTADO] Aplicaste " << ef->nombre << "-" << endl;
                             }
                         }
                     }
@@ -243,14 +232,13 @@ void iniciarCombate(Personaje &p, int y) {
     
                     cout << "\n=== HABILIDADES ACTIVAS ===" << endl;
                     vector<int> activas;
-                    for (int id : p.habilidadesIds) 
+                    for (int id : p.habilidadesIds)
                     {
-                    Habilidad h = obtenerHabilidadPorId(id);
-                    if (h.tipo == "Activa") 
-                    {
-                        activas.push_back(id);
-                        cout << activas.size() << ". " << h.nombre << " - " << h.descripcion << endl;
-                    }
+                        if (auto h = obtenerHabilidadPorId(id); h && h->tipo == "Activa")
+                        {
+                            activas.push_back(id);
+                            cout << activas.size() << ". " << h->nombre << " - " << h->descripcion << endl;
+                        }
                     }
 
                      if (activas.empty()) {
@@ -275,7 +263,7 @@ void iniciarCombate(Personaje &p, int y) {
     
     bool enInventario = true;
     while (enInventario) {
-        system("cls");
+        limpiarPantalla();
         cout << "=== INVENTARIO DE CONSUMIBLES (" << p.inventario.size() << "/10) ===" << endl;
 
         if (p.inventario.empty()) {
@@ -327,7 +315,7 @@ void iniciarCombate(Personaje &p, int y) {
             p.inventario.erase(p.inventario.begin() + (selInv - 1));
             
             enInventario = false; // Aquí NO restamos i, el turno termina
-            system("pause");
+            esperarTecla();
         }
     }
 
@@ -344,14 +332,14 @@ void iniciarCombate(Personaje &p, int y) {
 
     cout << "\n[HUIDA] Intentas escapar... (Probabilidad: " << chanceHuida << "%)" << endl;
 
-    if (rand() % 100 < chanceHuida) {
+    if (Rng::get().probabilidad(chanceHuida)) {
         cout << "[HUIDA] ¡Lograste escapar!" << endl;
         huidaExitosa = true;
-        system("pause");
+        esperarTecla();
     } else {
         // Fallo: no hacemos nada, el turno pasa y el enemigo atacará normalmente
         cout << "[HUIDA] ¡Fallaste al escapar! " << m.nombre << " te bloquea el paso." << endl;
-        system("pause");
+        esperarTecla();
     }
 }
 
@@ -369,8 +357,8 @@ void iniciarCombate(Personaje &p, int y) {
                 // Solo Raros y Jefes tienen habilidades asignadas
                 if ((m.esRaro || m.esJefe) && !m.habilidadesIds.empty()) {
                     // 40% de probabilidad de usar habilidad en vez de ataque normal
-                    if (rand() % 100 < 40) {
-                        int idHab = m.habilidadesIds[rand() % m.habilidadesIds.size()];
+                    if (Rng::get().probabilidad(40)) {
+                        int idHab = m.habilidadesIds[Rng::get().entre(0, (int)m.habilidadesIds.size() - 1)];
                         bool huyo = ejecutarHabilidadMonstruo(m, p, idHab);
                         if (huyo) monstruoHuyo = true; // Si la habilidad fue Huida exitosa
                         usoHabilidad = true;
@@ -389,7 +377,7 @@ void iniciarCombate(Personaje &p, int y) {
                     
                     // NUEVO 1.31: Amuleto de Sangre — 20% de contraatacar al recibir daño
                     if (p.tieneReliquia("Amuleto de Sangre") && m.hp > 0) {
-                        if (rand() % 100 < 20) {
+                        if (Rng::get().probabilidad(20)) {
                             m.hp -= 10;
                             cout << "[RELIQUIA] Amuleto de Sangre contraataca por 10 de dano!" << endl;
                         }
@@ -421,14 +409,14 @@ void iniciarCombate(Personaje &p, int y) {
     // NUEVO 1.31: Si el monstruo huyó, no hay recompensa
     if (monstruoHuyo) {
         cout << "\n[INFO] " << m.nombre << " ha huido cobardemente. No ganas recompensa." << endl;
-        system("pause");
+        esperarTecla();
         return;
     }
 
     if (m.hp <= 0 && y < 241) {
         // Victoria estándar: Oro dependiente del nivel y experiencia
         // NUEVO 1.31: Piedra del Alma añade 25% de oro extra si el jugador la tiene
-        int oroGanado = (m.nivelEnemigo * 35) + (rand() % 25); 
+        int oroGanado = (m.nivelEnemigo * 35) + Rng::get().entre(0, 24);
         if (p.tieneReliquia("Piedra del Alma")) {
             oroGanado = (int)(oroGanado * 1.25f);
             cout << "[RELIQUIA] Piedra del Alma: +25% oro!" << endl;
@@ -442,13 +430,13 @@ void iniciarCombate(Personaje &p, int y) {
         // Lógica original de botín y nivel
         gestionarLoot(p, y, m.esRaro);
         p.subirNivel();
-        system("pause");
+        esperarTecla();
 
     // Este es si ganas el combate final (LORE INTACTO)
     } else if (m.hp <= 0 && y >= 241) {
         cout << "\n--LANCELOT HA CAIDO-- El cielo se aclara por primera vez en decadas." << endl;
         cout << "Entre las cenizas recoges la ESCAMA DEL REY DRAGON, simbolo eterno de tu victoria." << endl;
-        system("pause");
+        esperarTecla();
         
     } else if (p.hp <= 0) {
         // Lógica de muerte original
