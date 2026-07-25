@@ -175,3 +175,32 @@ Arma excalibur(   1000, "Excalibur, Asesina de Dragones", 325, "Legendaria", 201
 Arma bastonDragon(1001, "Baculo del Rey Dragon",          300, "Legendaria", 202, "Mago",     4, 5000, 0);
 Arma arcoAlma(    1002, "Arco Alma de Dragon",            300, "Legendaria", 203, "Cazador",  4, 5000, 0);
 Arma armaLancelot(1003, "Espada del Dios del Caos",       350, "Legendaria", 204, "Guerrero", 4, 7000, 0);
+
+// =========================================================
+// NUEVO: FILTRADO POR ZONA Y CLASE
+// Estas dos funciones ya estaban declaradas en catalogoObjetos.h
+// desde hace tiempo, pero nunca se habian implementado — loot.cpp
+// filtraba a mano con su propio for/if en vez de usarlas. Se dejan
+// listas y correctas aqui; migrar loot.cpp para que las use en vez
+// de su filtrado manual queda pendiente para cuando revisemos ese
+// archivo a fondo.
+// =========================================================
+std::vector<Arma> obtenerArmasZona(int zona, const std::string& clase) {
+    std::vector<Arma> resultado;
+    for (const auto& a : listaArmas) {
+        if (a.zona == zona && a.clase == clase) {
+            resultado.push_back(a);
+        }
+    }
+    return resultado;
+}
+
+std::vector<Artefacto> obtenerArtefactosZona(int zona, const std::string& clase) {
+    std::vector<Artefacto> resultado;
+    for (const auto& a : listaArtefactos) {
+        if (a.zona == zona && a.clase == clase) {
+            resultado.push_back(a);
+        }
+    }
+    return resultado;
+}

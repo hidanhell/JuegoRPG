@@ -15,7 +15,7 @@ struct Artefacto {
     // Constructor por defecto
     Artefacto()
         : id(0), nombre("-"), defensa(0),
-          rareza("Ninguno"), efectoId(0),
+          rareza("Comun"), efectoId(0),
           clase("Ninguno"), zona(0), precio(0) {}
 
     // Constructor con parametros

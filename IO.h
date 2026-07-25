@@ -3,6 +3,8 @@
 
 #include "IRenderizador.h"
 #include "IEntrada.h"
+#include <string>
+struct Personaje;
 
 // Service locator para I/O. Por defecto usa ConsolaRenderizador y ConsolaEntrada.
 // Para tests: IO::establecerRender(&miRenderFalso) / IO::establecerEntrada(&miEntradaFalsa).
@@ -12,6 +14,8 @@ namespace IO {
     IEntrada&      entrada();
     void establecerRender(IRenderizador* instancia);
     void establecerEntrada(IEntrada* instancia);
+    
+    // Guardado / Carga de partidas moved to SaveGame.h
 }
 
 #endif

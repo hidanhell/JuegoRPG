@@ -52,7 +52,6 @@ void gestionarLoot(Personaje &p, int y, bool raro)
     // --- SISTEMA DE ARMAS ---
     int sArma = Rng::get().entre(1, 100);
     Arma nW(0, "-", 0, "Ninguno", 0, "Ninguno", 0, 0); 
-    float m = raro ? 1.2f : 1.0f;
 
     if (sArma <= 40) {
         if (raro) cout << "\nUN BRILLO MISTICO EMANA DE LOS RESTOS" << endl;
@@ -69,8 +68,11 @@ void gestionarLoot(Personaje &p, int y, bool raro)
         if (!posibles.empty()) {
             size_t index = static_cast<size_t>(Rng::get().entre(0, (int)posibles.size() - 1));
             nW = posibles[index];
-            nW.poder = static_cast<int>(std::round(static_cast<float>(nW.poder) * m));
 
+            // CORRECCION: antes se multiplicaba el poder DOS veces cuando el
+            // arma era rara (una vez por "m" = 1.2x, y otra por este 1.15x),
+            // dando un bono real de ~1.38x en vez del ~1.15x que el nombre
+            // "+" sugiere. Se deja un solo multiplicador.
             if (raro) {
                 nW.nombre += "+";
                 nW.poder = static_cast<int>(static_cast<float>(nW.poder) * 1.15f + 0.5f);
@@ -96,7 +98,6 @@ void gestionarLoot(Personaje &p, int y, bool raro)
     else { 
         int sArtefacto = Rng::get().entre(1, 100);
         Artefacto nA(0, "-", 0, "Ninguno", 0, "Ninguno", 0, 0);
-        float mA = raro ? 1.2f : 1.0f;
 
         if (sArtefacto <= 30) {
             if (raro) cout << "\nUN DESTELLO SURGE ENTRE LOS RESTOS" << endl;
@@ -113,8 +114,10 @@ void gestionarLoot(Personaje &p, int y, bool raro)
             if (!posibles.empty()) {
                 int index = Rng::get().entre(0, (int)posibles.size() - 1);
                 nA = posibles[static_cast<size_t>(index)];
-                nA.defensa = static_cast<int>(static_cast<float>(nA.defensa) * mA);
 
+                // CORRECCION: mismo caso que en armas -- se aplicaba "mA" (1.2x)
+                // y luego este 1.15x, dando ~1.38x real en vez de ~1.15x.
+                // Se deja un solo multiplicador.
                 if (raro) {
                     nA.nombre += "+";
                     nA.defensa = static_cast<int>(static_cast<float>(nA.defensa) * 1.15f + 0.5f);
@@ -139,6 +142,13 @@ void gestionarLoot(Personaje &p, int y, bool raro)
 
         std::vector<Reliquia> posibles;
         for (const auto& rel : listaReliquias) {
+            // NUEVO: la Calavera de Valdrame es loot exclusivo del Arzobispo
+            // (ver gestionarLootValdrame). Antes se filtraba entre el resto
+            // de reliquias del loot normal, asi que cualquier mob podia
+            // dartela por simple azar. Se excluye aqui para que solo se
+            // pueda obtener derrotandolo a el.
+            if (rel.nombre == "Calavera de Valdrame") continue;
+
             bool yaTiene = false;
             for (const auto& nombre : p.reliquias) {
                 if (nombre == rel.nombre) { yaTiene = true; break; }

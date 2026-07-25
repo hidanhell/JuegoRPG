@@ -2,6 +2,8 @@
 // BLOQUE M: MOTOR PRINCIPAL DEL JUEGO (v1.31)
 // =========================================================
 #include "utilidades.h"
+#include "IO.h"
+#include "SaveGame.h"
 #include "personajes.h"
 #include "combate.h"       // obtenerEfectoPorId ya declarada aquí
 #include "loot.h"
@@ -10,6 +12,9 @@
 #include <iostream>
 #include <map>
 #include <cctype>
+#include <filesystem>
+#include <chrono>
+#include <iomanip>
 #include "catalogoObjetos.h"
 #include "Armas.h"
 #include "Artefactos.h" 
@@ -113,7 +118,7 @@ int main() {
 
         if (p.posY >= 230) cout << "[ALERTA] El aire hierve... Lancelot esta muy cerca." << endl;
 
-        cout << "CONTROLES: (W-A-S-D) Mover | (P) Status | (Q) Salir" << endl;
+        cout << "CONTROLES: (W-A-S-D) Mover | (P) Status | (G) Guardar/Cargar | (Q) Salir" << endl;
         
         char input; cin >> input; input = aMinuscula(input);
 
@@ -218,6 +223,106 @@ int main() {
 
             cout << "\nPresiona ENTER para volver...";
             limpiarBuffer(); cin.get();
+        }
+        else if (input == 'g') {
+            limpiarPantalla();
+            mostrarCabecera("GUARDADO / CARGA");
+            cout << "1. Guardar partida" << endl;
+            cout << "2. Cargar partida" << endl;
+            cout << "3. Nueva partida" << endl;
+            cout << "4. Volver" << endl;
+            cout << "Seleccion: ";
+            int opc; if (!(cin >> opc)) { limpiarBuffer(); continue; }
+            limpiarBuffer();
+            if (opc == 1) {
+                cout << "Nombre de archivo (sin extension): ";
+                string nombreArchivo = IO::entrada().leerLinea();
+                if (nombreArchivo.empty()) nombreArchivo = "slot1";
+                string ruta = string("savegames/") + nombreArchivo + ".json";
+                if (guardarPartida(p, p.posY, ruta)) cout << "[OK] Partida guardada en: " << ruta << endl;
+                else cout << "[ERROR] No se pudo guardar la partida." << endl;
+                esperarTecla();
+            } else if (opc == 2) {
+                namespace fs = std::filesystem;
+                string savesDir = "savegames";
+                struct SaveInfo { string name; string mtime; uintmax_t size; };
+                vector<SaveInfo> saves;
+                if (fs::exists(savesDir) && fs::is_directory(savesDir)) {
+                    for (auto &entry : fs::directory_iterator(savesDir)) {
+                        if (entry.is_regular_file()) {
+                            auto pth = entry.path();
+                            if (pth.extension() == ".json") {
+                                string name = pth.stem().string();
+                                // last write time -> human readable
+                                string mtimeStr = "?";
+                                try {
+                                    auto ftime = fs::last_write_time(pth);
+                                    auto sctp = std::chrono::system_clock::now() + (ftime - fs::file_time_type::clock::now());
+                                    std::time_t cftime = std::chrono::system_clock::to_time_t(sctp);
+                                    std::tm tm = *std::localtime(&cftime);
+                                    std::ostringstream oss;
+                                    oss << std::put_time(&tm, "%Y-%m-%d %H:%M");
+                                    mtimeStr = oss.str();
+                                } catch (...) {}
+
+                                uintmax_t fsize = 0;
+                                try { fsize = fs::file_size(pth); } catch (...) { fsize = 0; }
+
+                                saves.push_back({name, mtimeStr, fsize});
+                            }
+                        }
+                    }
+                }
+
+                if (saves.empty()) {
+                    cout << "[INFO] No hay partidas guardadas." << endl;
+                    esperarTecla();
+                } else {
+                    cout << "Partidas disponibles:\n";
+                    for (size_t i = 0; i < saves.size(); ++i) {
+                        auto &s = saves[i];
+                        cout << (i + 1) << ". " << s.name << " (";
+                        if (s.size >= 1024) cout << (s.size / 1024) << " KB";
+                        else cout << s.size << " B";
+                        cout << ", " << s.mtime << ")\n";
+                    }
+                    cout << "Ingresa numero para cargar, o nombre (sin extension). ENTER para cancelar: ";
+                    string choice = IO::entrada().leerLinea();
+                    if (!choice.empty()) {
+                        string nombreArchivo;
+                        bool onlyDigits = true;
+                        for (char c : choice) if (!isdigit((unsigned char)c)) { onlyDigits = false; break; }
+                        if (onlyDigits) {
+                            int idx = stoi(choice);
+                            if (idx >= 1 && idx <= (int)saves.size()) nombreArchivo = saves[idx - 1].name;
+                            else {
+                                cout << "[ERROR] Indice invalido." << endl;
+                                esperarTecla();
+                                nombreArchivo.clear();
+                            }
+                        } else {
+                            nombreArchivo = choice;
+                        }
+
+                        if (!nombreArchivo.empty()) {
+                            string ruta = savesDir + "/" + nombreArchivo + ".json";
+                            if (cargarPartida(p, p.posY, ruta)) cout << "[OK] Partida cargada: " << ruta << endl;
+                            else cout << "[ERROR] No se pudo cargar la partida." << endl;
+                            esperarTecla();
+                        }
+                    }
+                }
+            } else if (opc == 3) {
+                cout << "Crear nueva partida y perder progreso actual? (S/N): ";
+                char r; cin >> r; r = aMinuscula(r);
+                if (r == 's') {
+                    nuevaPartida(p, 0);
+                    cout << "[OK] Nueva partida creada." << endl;
+                } else cout << "Operacion cancelada." << endl;
+                esperarTecla();
+            } else {
+                // volver
+            }
         }
         else if (input == 'q') {
             cout << "¿Estas seguro de que quieres abandonar la mision? (S/N): ";

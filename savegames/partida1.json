@@ -1,0 +1,21 @@
+{
+  "save_version": 1,
+  "posY": 0,
+  "nombre": "Bastian",
+  "nivel": 1,
+  "hp": 110,
+  "hpMax": 110,
+  "exp": 0,
+  "oro": 10,
+  "fuerza": 15,
+  "vitalidad": 12,
+  "destreza": 8,
+  "inteligencia": 5,
+  "ataqueBase": 30,
+  "velocidadBase": 10,
+  "habilidades": [],
+  "inventario": [
+    {"id": 1, "nombre": "Pocion Baja"}
+  ],
+  "arma_id": 1
+}
