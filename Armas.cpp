@@ -1,6 +1,6 @@
 #include "Armas.h"
+#include "Rng.h"
 #include <iostream>
-#include <random>
 
 using namespace std;
 
@@ -13,10 +13,8 @@ Arma::Arma(int i, const string& n, int p, const string& r, int eId, const string
     // Logica de automatizacion para Armas Raras
     // NOTA: Solo se activa si se pasa eId == -1 explicitamente al crear el arma
     if (rareza == "Raro" && eId == -1) {
-        static std::random_device rd;
-        static std::mt19937 gen(rd());
-        std::uniform_int_distribution<> dis(1, 5);
-        efectoId = dis(gen);
+        // Centralizamos el efecto aleatorio de las armas raras en el RNG único del proyecto.
+        efectoId = Rng::get().entre(1, 5);
     }
 }
 

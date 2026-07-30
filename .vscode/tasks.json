@@ -30,6 +30,7 @@
         "CatalogoObjetos.cpp",
         "Rng.cpp",
         "IO.cpp",
+        "Zonas.cpp",
         "-o",
         "${workspaceFolder}/build/Debug/outDebug.exe"
       ],

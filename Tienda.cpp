@@ -6,11 +6,9 @@
 #include <iostream>
 #include <algorithm>
 #include <vector>
-#include <cstdlib>
-#include <ctime>
-#include <random>
 #include "catalogoObjetos.h"
-#include "Consumibles.h"      
+#include "Consumibles.h"
+#include "Rng.h"
 
 using namespace std;
 
@@ -20,7 +18,6 @@ using namespace std;
 
 void entrarTienda(Personaje &p) {
     bool enMenu = true;
-    srand((unsigned)time(nullptr));
 
     while (enMenu) {
         limpiarPantalla();
@@ -83,28 +80,39 @@ void entrarTienda(Personaje &p) {
                 for (auto &a : listaArmas) if (a.clase == p.clase) poolArmas.push_back(a);
                 for (auto &a : listaArtefactos) if (a.clase == p.clase) poolArt.push_back(a);
 
-                mt19937 rng(static_cast<unsigned>(time(nullptr)));
-                shuffle(poolArmas.begin(), poolArmas.end(), rng);
-                shuffle(poolArt.begin(), poolArt.end(), rng);
+                // Centralizamos la aleatoriedad de la tienda en el RNG único del proyecto.
+                std::vector<Arma> poolArmasSeleccionadas;
+                std::vector<Artefacto> poolArtSeleccionadas;
 
-                for (int i = 0; i < 2 && i < (int)poolArmas.size(); i++) {
-                    cout << idxCompra << ". " << poolArmas[static_cast<size_t>(i)].nombre
-                         << " [Atk +" << poolArmas[static_cast<size_t>(i)].poder << "] (" 
-                         << poolArmas[static_cast<size_t>(i)].precio << " oro)" << endl;
+                for (int i = 0; i < 2 && !poolArmas.empty(); ++i) {
+                    int idx = Rng::get().entre(0, static_cast<int>(poolArmas.size()) - 1);
+                    poolArmasSeleccionadas.push_back(poolArmas[static_cast<size_t>(idx)]);
+                    poolArmas.erase(poolArmas.begin() + idx);
+                }
+                for (int i = 0; i < 2 && !poolArt.empty(); ++i) {
+                    int idx = Rng::get().entre(0, static_cast<int>(poolArt.size()) - 1);
+                    poolArtSeleccionadas.push_back(poolArt[static_cast<size_t>(idx)]);
+                    poolArt.erase(poolArt.begin() + idx);
+                }
+
+                for (int i = 0; i < (int)poolArmasSeleccionadas.size(); i++) {
+                    cout << idxCompra << ". " << poolArmasSeleccionadas[static_cast<size_t>(i)].nombre
+                         << " [Atk +" << poolArmasSeleccionadas[static_cast<size_t>(i)].poder << "] (" 
+                         << poolArmasSeleccionadas[static_cast<size_t>(i)].precio << " oro)" << endl;
                     idxCompra++;
                 }
-                for (int i = 0; i < 2 && i < (int)poolArt.size(); i++) {
-                    cout << idxCompra << ". " << poolArt[static_cast<size_t>(i)].nombre 
-                         << " [Def +" << poolArt[static_cast<size_t>(i)].defensa << "] (" 
-                         << poolArt[static_cast<size_t>(i)].precio << " oro)" << endl;
+                for (int i = 0; i < (int)poolArtSeleccionadas.size(); i++) {
+                    cout << idxCompra << ". " << poolArtSeleccionadas[static_cast<size_t>(i)].nombre 
+                         << " [Def +" << poolArtSeleccionadas[static_cast<size_t>(i)].defensa << "] (" 
+                         << poolArtSeleccionadas[static_cast<size_t>(i)].precio << " oro)" << endl;
                     idxCompra++;
                 }
                 cout << "0. Cancelar" << endl;
 
                 int seleccion; cin >> seleccion;
 
-                if (seleccion > 0 && seleccion <= 2) { 
-                    Arma elegida = poolArmas[static_cast<size_t>(seleccion - 1)];
+                if (seleccion > 0 && seleccion <= (int)poolArmasSeleccionadas.size()) {
+                    Arma elegida = poolArmasSeleccionadas[static_cast<size_t>(seleccion - 1)];
                     if (elegida.poder > p.armaEquipada.poder) {
                         if (p.oro >= elegida.precio) {
                             p.oro -= elegida.precio;
@@ -113,8 +121,9 @@ void entrarTienda(Personaje &p) {
                         } else cout << "No tienes suficiente oro." << endl;
                     } else cout << "Tu arma actual es mejor o igual." << endl;
                 } 
-                else if (seleccion > 2 && seleccion <= 4) { 
-                    Artefacto elegido = poolArt[static_cast<size_t>(seleccion - 3)];
+                else if (seleccion > static_cast<int>(poolArmasSeleccionadas.size()) && seleccion <= static_cast<int>(poolArmasSeleccionadas.size()) + static_cast<int>(poolArtSeleccionadas.size())) {
+                    const auto offset = static_cast<std::size_t>(seleccion - 1 - static_cast<int>(poolArmasSeleccionadas.size()));
+                    Artefacto elegido = poolArtSeleccionadas[offset];
                     if (elegido.defensa > p.artefactoEquipado.defensa) {
                         if (p.oro >= elegido.precio) {
                             p.oro -= elegido.precio;

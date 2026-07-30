@@ -1,11 +1,11 @@
 // =========================================================
-// BLOQUE M: MOTOR PRINCIPAL DEL JUEGO (v1.31)
+// BLOQUE M: MOTOR PRINCIPAL DEL JUEGO (v1.4)
 // =========================================================
 #include "utilidades.h"
 #include "IO.h"
 #include "SaveGame.h"
 #include "personajes.h"
-#include "combate.h"       // obtenerEfectoPorId ya declarada aquí
+#include "combate.h"       
 #include "loot.h"
 #include "tienda.h"
 #include "Rng.h"
@@ -21,8 +21,9 @@
 #include "Reliquias.h"
 #include "Efectos.h"
 #include "Monstruos.h"
-#include "Habilidades.h"    
-
+#include "Habilidades.h"
+#include "Recursos.h"
+#include "Zonas.h"         
 using namespace std;
 
 int main() {
@@ -81,7 +82,11 @@ int main() {
 
     while (true) {
         limpiarPantalla();
-        cout << "ESTAS EN: " << obtenerNombreZona(p.posY) << endl;
+        
+        // NUEVO: Evaluación unificada de la casilla actual a través del Gestor de Zonas
+        InfoCasilla casillaActual = GestorZonas::evaluarCasilla(p.posX, p.posY);
+        
+        cout << "ESTAS EN: " << casillaActual.nombreZona << endl;
         cout << "POSICION: [X: " << p.posX << " | Y: " << p.posY << "]" << endl;
 
         // --- HUD ---
@@ -111,8 +116,8 @@ int main() {
             continue; 
         }
 
-        // Detección de Tienda
-        if (p.posY == 30 || p.posY == 90 || p.posY == 150 || p.posY == 210) { 
+        // Detección de Tienda usando el gestor de zonas
+        if (casillaActual.esTienda) { 
             cout << "[-] TIENDA CERCANA: Presiona 'T' para comerciar." << endl;
         }
 
@@ -126,12 +131,23 @@ int main() {
             if (p.posY < 241) {
                 p.posY++;
 
-                // Diálogo ambiental al moverse (15% de probabilidad)
-                lanzarDialogoAmbiental(p.posY);
+                // NUEVO: Evaluamos qué hay en la nueva casilla
+                InfoCasilla nuevaCasilla = GestorZonas::evaluarCasilla(p.posX, p.posY);
 
-                // 30% de probabilidad de combate aleatorio
-                if (p.posY < 241 && Rng::get().probabilidad(30)) {
+                // Si hay un jefe forzado (Valdrame en Y=60), se salta el azar y pelea
+                if (!p.valdrameDerrotado && nuevaCasilla.esJefeObligatorio) {
+                    limpiarPantalla();
+                    mostrarCabecera(nuevaCasilla.nombreZona);
                     iniciarCombate(p, p.posY);
+                } else {
+                    // Flujo normal si no hay jefe forzado
+                    // Diálogo ambiental al moverse (15% de probabilidad)
+                    lanzarDialogoAmbiental(p.posY);
+
+                    // 30% de probabilidad de combate aleatorio
+                    if (p.posY < 241 && Rng::get().probabilidad(30)) {
+                        iniciarCombate(p, p.posY);
+                    }
                 }
             }
         }
@@ -139,7 +155,7 @@ int main() {
         else if (input == 'a') { p.posX--; }
         else if (input == 'd') { p.posX++; }
         else if (input == 't') {
-            if (p.posY == 30 || p.posY == 90 || p.posY == 150 || p.posY == 210) {
+            if (casillaActual.esTienda) {
                 entrarTienda(p);
             }
         }
@@ -294,8 +310,9 @@ int main() {
                         for (char c : choice) if (!isdigit((unsigned char)c)) { onlyDigits = false; break; }
                         if (onlyDigits) {
                             int idx = stoi(choice);
-                            if (idx >= 1 && idx <= (int)saves.size()) nombreArchivo = saves[idx - 1].name;
-                            else {
+                            if (idx >= 1 && static_cast<size_t>(idx) <= saves.size()) {
+                                nombreArchivo = saves[static_cast<size_t>(idx - 1)].name;
+                            } else {
                                 cout << "[ERROR] Indice invalido." << endl;
                                 esperarTecla();
                                 nombreArchivo.clear();

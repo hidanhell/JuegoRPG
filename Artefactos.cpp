@@ -1,6 +1,6 @@
 #include "Artefactos.h"
+#include "Rng.h"
 #include <iostream>
-#include <random>
 
 using namespace std;
 
@@ -12,11 +12,8 @@ Artefacto::Artefacto(int i, const string& n, int d, const string& r, int e, cons
     // Logica hibrida: Azar solo para Raros con senal -1
     // NOTA: Solo se activa si se pasa e == -1 explicitamente al crear el artefacto
     if (rareza == "Raro" && e == -1) {
-        static std::random_device rd;
-        static std::mt19937 gen(rd());
-        std::uniform_int_distribution<> dis(1, 5); 
-        
-        efectoId = dis(gen);
+        // Centralizamos el efecto aleatorio de los artefactos raros en el RNG único del proyecto.
+        efectoId = Rng::get().entre(1, 5);
     }
     // No hace falta el else porque efectoId ya se inicio con 'e' arriba
 }

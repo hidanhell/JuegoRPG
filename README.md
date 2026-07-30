@@ -27,26 +27,26 @@ Despiertas en una aldea destruida. Sin memoria. Sin saber quién eres ni cómo l
 
 | Clase | Atributo principal | Estilo de juego |
 |-------|-------------------|-----------------|
-| ⚔️ Guerrero | Fuerza | Daño físico, alta resistencia |
-| 🔮 Mago | Inteligencia | Daño mágico, efectos de estado |
-| 🏹 Cazador | Destreza | Velocidad, críticos, multi-golpe |
+| ⚔️ Guerrero | Fuerza | Daño físico, alta resistencia. |
+| 🔮 Mago | Inteligencia | Daño mágico, efectos de estado. |
+| 🏹 Cazador | Destreza | Velocidad y críticos. El enano cazador no queda aturdido y puede llevar esbirros bestias que captura durante su viaje; estas mascotas atacan o defienden de forma autónoma dependiendo de con cuáles cuente. |
 
 Cada clase tiene su propio árbol de habilidades con desbloqueos en nivel 5, 10 y 15 — incluyendo una **subclase** que define tu estilo definitivo de combate.
 
 ### Sistemas implementados
 
-- ⚔️ **Combate por turnos** con sistema de velocidad, críticos y efectos de estado
-- 🌍 **4 zonas** con enemigos escalados y atmósfera propia
-- 🎲 **Sistema de loot** con rareza: Común, Raro y Legendario
-- 🧪 **Inventario** de consumibles con pociones y elixires
-- 🏪 **Tienda** con compra y venta de equipo
-- 💀 **Efectos de estado**: Quemadura, Veneno, Sangrado, Parálisis, Congelación y más
-- 🏆 **Reliquias** con efectos pasivos únicos
-- 🐉 **Jefe final** con múltiples fases de combate
+- ⚔️ **Combate por turnos** directo y táctico, enfocado en la acción y jugabilidad ágil sin pesados bloques de texto narrativos ni diálogos excesivamente lentos.
+- 🌍 **Gestor de Zonas Modular** con 4 biomas de enemigos escalados y eventos fijos obligatorios basados en coordenadas (Eje Y).
+- 🎲 **Sistema de loot** con rareza: Común, Raro, Épico y Legendario.
+- 🧪 **Inventario** de consumibles con pociones y elixires.
+- 🏪 **Tienda** con compra y venta de equipo.
+- 💀 **Efectos de estado**: Quemadura, Veneno, Sangrado, Parálisis, Congelación y más.
+- 🏆 **Reliquias** con efectos pasivos únicos.
+- 🐉 **Jefe final** con múltiples fases de combate.
 
 ### Enemigos notables
 
-- **Arzobispo Veldrame** — Un hombre santo corrompido por el caos. Guarda la salida de la primera zona.
+- **Arzobispo Valdrame** — Un hombre santo corrompido por el caos. Guarda la salida de la primera zona y lanza ataques de daño sagrado y vampirismo.
 - **Nzz'gorah** — Una entidad sin nombre traída de otra dimensión por el aliento de Angra. No es de este mundo.
 - **Lancelot, el Rey Dragón** — El jefe final. Tu rey. No vas a vengarte — vas a liberarlo.
 
@@ -54,15 +54,25 @@ Cada clase tiene su propio árbol de habilidades con desbloqueos en nivel 5, 10 
 
 ## 🗺️ Zonas
 
-| Zona | Nombre | Nivel recomendado |
-|------|--------|-------------------|
-| 1 | Aldea en las Sombras | 1 - 6 |
-| 2 | Bosque Oscuro | 7 - 11 |
-| 3 | Pantano Siniestro | 12 - 16 |
-| 4 | Tierra Desolada | 17 - 20 |
-| Final | Castillo Abandonado | 20+ |
+| Zona | Nombre | Nivel recomendado | Coordenada Y |
+|------|--------|-------------------|--------------|
+| 1 | Aldea en las Sombras | 1 - 6 | 0 - 60 |
+| 2 | Bosque Oscuro | 7 - 11 | 61 - 120 |
+| 3 | Pantano Siniestro | 12 - 16 | 121 - 180 |
+| 4 | Tierra Desolada | 17 - 20 | 181 - 240 |
+| Final | Castillo Abandonado | 20+ | 241+ |
 
 ---
+
+## 🛠️ Compilar y ejecutar
+
+### Requisitos
+- Compilador C++17 o superior (g++ recomendado)
+- Windows (usa `system("cls")` y `system("pause")`)
+
+### Compilar con g++
+```bash
+g++ -std=c++17 -o Reino *.cpp
 
 ## 🛠️ Compilar y ejecutar
 

@@ -35,23 +35,29 @@ void asignarHabilidadesMonstruo(Monstruo &m) {
     if (!m.esRaro && !m.esJefe && !m.esElite) return; 
 
     // === MINI BOSS: ARZOBISPO VALDRAME ===
-    // Recibe ambas habilidades; cual se usa depende de la fase (manejado en combate.cpp)
     if (m.nombre == "ARZOBISPO VALDRAME") {
-        m.habilidadesIds.push_back(401); // Fase 1: Senor de los Muertos
-        m.habilidadesIds.push_back(402); // Fase 2: El Punio Santo
+        m.habilidadesIds.push_back(401); 
+        m.habilidadesIds.push_back(402); 
         return;
     }
 
-    // Logica general para Raros normales
-    bool esMagico = (m.inteligencia > m.fuerza);
-    bool esCobarde = (m.velocidad > m.ataque * 2);
-
-    if (esCobarde) {
-        m.habilidadesIds.push_back(Rng::get().probabilidad(50) ? 301 : 304);
-    } else if (esMagico) {
-        m.habilidadesIds.push_back(Rng::get().probabilidad(50) ? 305 : 306);
-    } else {
-        m.habilidadesIds.push_back(Rng::get().probabilidad(50) ? 302 : 303);
+    // === ESPECIALIZACIÓN DE HABILIDADES POR ZONA ===
+    if (m.zona == 1) {
+        // Zona 1 (Aldea): Básicos y veneno simple
+        int habZona1 = Rng::get().probabilidad(50) ? 301 : 303; // Golpe Venenoso o Grito de Guerra
+        m.habilidadesIds.push_back(habZona1);
+    } 
+    else if (m.zona == 2) {
+        // Zona 2 (Bosque): Sangrados y control de velocidad / huida
+        int habZona2 = Rng::get().probabilidad(50) ? 302 : 304; // Mordida Sangrienta o Huida
+        m.habilidadesIds.push_back(habZona2);
+    } 
+    else if (m.zona >= 3) {
+        // Zonas 3 y 4 (Pantano y Bastión): Ácido, parálisis y magia pesada
+        int selector = Rng::get().entre(1, 3);
+        if (selector == 1) m.habilidadesIds.push_back(305); // Escupitajo Acido (Quemadura)
+        else if (selector == 2) m.habilidadesIds.push_back(306); // Paralizante
+        else m.habilidadesIds.push_back(302); // Mordida Sangrienta
     }
 }
 
@@ -102,7 +108,7 @@ bool ejecutarHabilidadMonstruo(Monstruo &m, Personaje &p, int idHabilidad) {
     // 50% de probabilidad de activarse en su turno para no ser injusto.
     // =========================================================
     if (hab.tipo == "Vampirismo") {
-        if (rand() % 100 < 50) {
+        if (Rng::get().probabilidad(50)) {
             int drenaje = static_cast<int>(static_cast<float>(p.hpMax) * 0.05f); // 5% HP max del jugador
             drenaje = max(1, drenaje);
             p.hp -= drenaje;

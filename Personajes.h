@@ -8,6 +8,8 @@
 
 using namespace std;
 
+struct Monstruo; // Declaracion anticipada para evitar include circular
+
 struct Personaje {
     // --- Identidad y Lore ---
     string nombre, clase, nombreAtaque;
@@ -24,6 +26,18 @@ struct Personaje {
     int hp, hpMax;
     int ataqueBase, defensaBase, velocidadBase;
     int bonusCritico;
+
+    //------Recursos de clase (Ira, Mana, Enfoque)------
+
+    int recursoActual = 0;
+    int recursoMax = 100;
+    std::string tipoRecurso = "Ninguno";
+
+    // --- Flags de combate para Ultimates (nivel 20) ---
+    bool ultimateUsada          = false; // Controla que la ultimate solo se use 1 vez por partida
+    bool ultimoTurnoAtaco       = false; // Flecha del Juicio Final (331): requiere haber atacado el turno anterior
+    int  turnosAgotado          = 0;     // Colapso Solar (321): bloquea usar habilidades N turnos
+    int  turnosEscudoCompanero  = 0;     // Pacto de Sangre (332): companero absorbe el proximo golpe
 
     // --- Equipamiento e Inventario ---
     Arma armaEquipada;
@@ -43,11 +57,8 @@ struct Personaje {
     bool tieneSubclase15   = false;  // Controla desbloqueo de subclase nivel 15
     bool tieneUltimate20   = false;  // Controla desbloqueo de ultimate nivel 20
     bool esBerserker       = false;  // Modo berserker para el Guerrero al nivel 15
-
-    // --- Flags de combate para Ultimates (nivel 20) ---
-    bool ultimoTurnoAtaco       = false; // Flecha del Juicio Final (321): requiere haber atacado el turno anterior
-    int  turnosAgotado          = 0;     // Colapso Solar (311): bloquea usar habilidades N turnos
-    int  turnosEscudoCompanero  = 0;     // Pacto de Sangre (322): companero absorbe el proximo golpe
+    bool valdrameDerrotado = false; // Evita repetir el evento del jefe de la iglesia
+    bool subclaseAplicada  = false; // Para no aplicar el x1.40 dos veces si vuelves al menu
 
     // --- Funciones Principales ---
     Personaje(string n, int tipo);
@@ -58,3 +69,19 @@ struct Personaje {
     void reaparecer();     // Reset al morir (vuelve a la aldea)
     void actualizarEstadisticas(); // Recalcula HP Maximo, Ataque, Velocidad y Critico
 };
+
+// --- Funciones Globales de Ultimates (FUERA del struct) ---
+// Busca en habilidadesIds cuál ultimate (300-399) tiene aprendida el personaje.
+// Devuelve -1 si no tiene ninguna.
+int obtenerUltimateIdDePersonaje(const Personaje &pj);
+
+// Valida si el personaje puede usar su ultimate ahora mismo.
+// Hoy solo chequea "desbloqueada y no gastada"; cuando implementes
+// mana/ira/enfoque, el chequeo de recurso se agrega aqui adentro.
+bool puedeUsarUltimate(const Personaje &pj);
+
+// Ejecuta la ultimate correspondiente. Tiene su propio switch,
+// separado de ejecutarHabilidad(), porque las reglas son distintas
+// (un solo uso por partida, consumo total de recurso, etc.)
+void ejecutarUltimate(Personaje &pj, Monstruo &m, int idHabilidad);
+

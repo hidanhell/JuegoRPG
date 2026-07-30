@@ -12,6 +12,8 @@
 #include "catalogoObjetos.h"
 #include "Consumibles.h"
 #include "Habilidades.h"
+#include "Rng.h"
+#include "Recursos.h"
 using namespace std;
 
 /// =========================================================
@@ -70,7 +72,8 @@ std::optional<Monstruo> generarEnemigo(int y) {
     // Siempre regeneramos la horda de la zona actual con la función que tienes en monstruosdatos.cpp
     listaMonstruos = generarHorda(zona);
 
-    bool esElite = (rand() % 100 < 25); 
+    // Centralizamos la aleatoriedad del combate en el RNG único del proyecto.
+    bool esElite = Rng::get().probabilidad(25);
 
     std::vector<Monstruo> posibles;
     for (const auto& m : listaMonstruos) {
@@ -99,7 +102,8 @@ std::optional<Monstruo> generarEnemigo(int y) {
     }
 
     if (!posibles.empty()) {
-        return posibles[static_cast<size_t>(rand()) % posibles.size()];
+        int index = Rng::get().entre(0, static_cast<int>(posibles.size()) - 1);
+        return posibles[static_cast<size_t>(index)];
     }
 
     // Retorno de seguridad: nullopt si no hay monstruo
@@ -112,8 +116,10 @@ std::optional<Monstruo> generarEnemigo(int y) {
 // =========================================================
 void mostrarHUDCombate(const Personaje &p, const Monstruo &m, int hpInicial, const string &etiqueta) {
     cout << "====================================================" << endl;
-    cout << " " << p.nombre << " [" << p.hp << "/" << p.hpMax << " HP]  VS  " 
-         << etiqueta << m.nombre
+    // NUEVO: Agregamos la visualización del recurso actual
+    cout << " " << p.nombre << " [" << p.hp << "/" << p.hpMax << " HP] | " 
+         << p.tipoRecurso << ": " << p.recursoActual << "/" << p.recursoMax << endl;
+    cout << " VS " << etiqueta << m.nombre
          << " (Nvl " << m.nivelEnemigo << ") [" << m.hp << "/" << hpInicial << " HP]" << endl;
     if (!m.naturaleza.empty() && m.naturaleza != "Normal")
         cout << " Naturaleza: " << m.naturaleza << endl;
@@ -229,16 +235,6 @@ void manejarFasesJefe(Monstruo &m, Personaje &p, int y,
 // =========================================================
 // TURNO DEL JUGADOR — Menu tactico completo
 // =========================================================
-// Devuelve true si el jugador logro huir con exito.
-//
-// NOTA sobre el "no gastar turno": antes esto se manejaba con "i--"
-// sobre el contador del for externo, como solucion temporal mientras
-// no existia el sistema de energia/mana de habilidades. Aqui se
-// mantiene exactamente el mismo comportamiento — cancelar o fallar
-// una seleccion no consume turno — solo que ahora vive en una
-// bandera local 'accionValida'. Cuando definan el costo de energia
-// de las habilidades, este es el lugar donde se agregaria la
-// validacion correspondiente.
 bool turnoJugador(Personaje &p, Monstruo &m, int &turnosAbsorcion) {
     bool huidaExitosa = false;
     bool accionValida = false;
@@ -247,7 +243,7 @@ bool turnoJugador(Personaje &p, Monstruo &m, int &turnosAbsorcion) {
         cout << "\n--- TU TURNO ---" << endl;
 
         // -------------------------------------------------------
-        // PARCHE 2: Menú con alerta de agotamiento
+        // Menú con alerta de agotamiento
         // -------------------------------------------------------
         cout << "1. " << p.nombreAtaque;
         if (p.turnosAgotado > 0)
@@ -268,7 +264,7 @@ bool turnoJugador(Personaje &p, Monstruo &m, int &turnosAbsorcion) {
 
         if (opc == 1) { // ATAQUE BÁSICO
             int dTotal = p.ataqueBase + p.armaEquipada.poder;
-            bool esCritico = (rand() % 100 < (5 + p.bonusCritico));
+            bool esCritico = Rng::get().probabilidad(5 + p.bonusCritico);
             int danoReal = max(2, dTotal - m.defensa);
 
             if (esCritico) {
@@ -286,13 +282,7 @@ bool turnoJugador(Personaje &p, Monstruo &m, int &turnosAbsorcion) {
             }
 
             // -------------------------------------------------------
-            // NUEVO (esta revision): FASE 2 DE LANCELOT — ESCAMAS DEL REY
-            // Antes 'turnosAbsorcion' se asignaba en manejarFasesJefe()
-            // y se mostraba en el mensaje de aviso, pero nunca se usaba
-            // para nada mas. Aqui se completa la mecanica que el propio
-            // mensaje prometia: mientras queden turnos de absorcion,
-            // el ataque basico no le quita vida a Lancelot — se
-            // convierte en curacion para el, tal como avisa el dialogo.
+            // Escamas del Rey (absorcion de dano)
             // -------------------------------------------------------
             bool absorbidoPorEscamas = false;
             if (turnosAbsorcion > 0) {
@@ -310,11 +300,9 @@ bool turnoJugador(Personaje &p, Monstruo &m, int &turnosAbsorcion) {
                 cout << "[TI] " << p.nombreAtaque << " causa " << danoReal << " de dano." << endl;
             }
 
-            // CORRECCIÓN: obtenerEfectoPorId ahora retorna optional, desempacamos con if
-            // (el efecto del arma se sigue aplicando aunque el golpe haya sido absorbido,
-            // ya que el arma si conecto — solo la vida del golpe fue redirigida)
+            // --- Artefacto: Efecto de estado del arma (solo si el enemigo sigue vivo) ---
             if (p.armaEquipada.efectoId > 0 && m.hp > 0) {
-                if (rand() % 100 < 30) { 
+                if (Rng::get().probabilidad(30)) {
                     auto efOpt = obtenerEfectoPorId(p.armaEquipada.efectoId);
                     if (efOpt && efOpt->id != 0) {
                         m.efectosActivos.push_back(*efOpt);
@@ -322,40 +310,40 @@ bool turnoJugador(Personaje &p, Monstruo &m, int &turnosAbsorcion) {
                     }
                 }
             }
-            (void)absorbidoPorEscamas; // reservado por si se necesita distinguir el caso mas adelante
+            (void)absorbidoPorEscamas;
             
             // -------------------------------------------------------
-            // PARCHE 3: Tracker de ataque (Flecha del Juicio Final)
+            // Generación de recurso por ataque básico (Ira / Enfoque)
             // -------------------------------------------------------
-            // Marca que el jugador ataco este turno
+            generarRecursoPorTurno(p, true, false);
+
+            // -------------------------------------------------------
+            // (Flecha del Juicio Final)
+            // -------------------------------------------------------
             p.ultimoTurnoAtaco = true;
-            // -------------------------------------------------------
 
             accionValida = true; // El ataque siempre consume el turno
         } 
 
         else if (opc == 2) { 
             // -------------------------------------------------------
-            // PARCHE 4: Trackeo inactivo
+            // Trackeo inactivo
             // -------------------------------------------------------
             p.ultimoTurnoAtaco = false; 
             
             // -------------------------------------------------------
-            // PARCHE 3: Bloqueo de habilidades por agotamiento
+            // Bloqueo de habilidades por agotamiento
             // -------------------------------------------------------
             if (p.turnosAgotado > 0) {
                 cout << "[!] Estas agotado por Colapso Solar. No puedes usar habilidades este turno." << endl;
-                // No consume turno: el menu se vuelve a mostrar (antes: i--)
+                // No consume turno: el menu se vuelve a mostrar
             } else {
                 // --- MENÚ DE HABILIDADES ACTIVAS Y ULTIMATES ---
-                // CORRECCIÓN 1.32: Se agrego || h.tipo == "Ultimate" para que las
-                // habilidades de nivel 20 aparezcan en el menu junto a las activas.
-                // Las Ultimates se muestran con *** para distinguirlas visualmente.
+                
                 cout << "\n=== HABILIDADES ===" << endl;
                 vector<int> activas;
                 for (int id : p.habilidadesIds) 
                 {
-                    // CORRECCIÓN: obtenerHabilidadPorId retorna optional, desempacamos
                     auto hOpt = obtenerHabilidadPorId(id);
                     if (!hOpt) continue;
                     Habilidad h = *hOpt;
@@ -371,7 +359,6 @@ bool turnoJugador(Personaje &p, Monstruo &m, int &turnosAbsorcion) {
 
                 if (activas.empty()) {
                     cout << "[!] No tienes habilidades activas disponibles." << endl;
-                    // No consume turno (antes: i--)
                 } else {
                     cout << "Seleccion: ";
                     int sel;
@@ -382,19 +369,36 @@ bool turnoJugador(Personaje &p, Monstruo &m, int &turnosAbsorcion) {
                     }
                     else if (sel > 0 && sel <= (int)activas.size()) {
                         int idSeleccionado = activas[static_cast<size_t>(sel - 1)];
-                        ejecutarHabilidad(p, m, idSeleccionado); // función central
-                        accionValida = true;
+                        auto hOpt = obtenerHabilidadPorId(idSeleccionado);
+
+                        if (hOpt) {
+                            // Validamos si es una Ultimate (IDs 300-399) o Activa normal (IDs 100-199)
+                            if (hOpt->tipo == "Ultimate") {
+                                if (puedeUsarUltimate(p)) {
+                                    // Las ultimates cuestan 50 de recurso por defecto o se ejecutan directo
+                                    if (gastarRecurso(p, 50)) {
+                                        ejecutarUltimate(p, m, idSeleccionado);
+                                        accionValida = true;
+                                    }
+                                } else {
+                                    cout << "[!] Ya has usado tu Ultimate en esta partida o no cumples los requisitos." << endl;
+                                }
+                            } else {
+                                // Habilidad activa normal (Costo estándar de recurso: ej. 25)
+                                int costoRecurso = 25;
+                                if (gastarRecurso(p, costoRecurso)) {
+                                    ejecutarHabilidad(p, m, idSeleccionado);
+                                    accionValida = true;
+                                }
+                            }
+                        }
                     } else {
                         cout << "[-] Seleccion invalida." << endl;
-                        // No consume turno (antes: i--)
                     }
                 }
             } // Cierre del else de agotamiento
         } 
         else if (opc == 3) { // MENÚ DE INVENTARIO
-            // -------------------------------------------------------
-            // PARCHE 4: Trackeo inactivo
-            // -------------------------------------------------------
             p.ultimoTurnoAtaco = false; 
 
             bool enInventario = true;
@@ -420,7 +424,7 @@ bool turnoJugador(Personaje &p, Monstruo &m, int &turnosAbsorcion) {
                 if (!(cin >> selInv)) { cin.clear(); cin.ignore(1000, '\n'); continue; }
 
                 if (selInv == (int)p.inventario.size() + 1 || p.inventario.empty()) {
-                    enInventario = false; // Vuelve al menu principal sin gastar turno
+                    enInventario = false; 
                 }
                 else if (selInv > 0 && selInv <= (int)p.inventario.size()) {
                    Consumible& obj = p.inventario[static_cast<size_t>(selInv - 1)];
@@ -450,15 +454,9 @@ bool turnoJugador(Personaje &p, Monstruo &m, int &turnosAbsorcion) {
                 }
             }
 
-            // El turno solo se consume si de verdad se uso un objeto.
-            // Si el jugador entro al inventario y volvio sin usar nada,
-            // el menu principal se vuelve a mostrar (antes: i--).
             if (usoObjeto) accionValida = true;
         }
         else if (opc == 4) { // HUIR
-            // -------------------------------------------------------
-            // PARCHE 4: Trackeo inactivo
-            // -------------------------------------------------------
             p.ultimoTurnoAtaco = false; 
 
             int chanceHuida = 40 + ((p.velocidadBase - m.velocidad) * 3);
@@ -466,7 +464,7 @@ bool turnoJugador(Personaje &p, Monstruo &m, int &turnosAbsorcion) {
 
             cout << "\n[HUIDA] Intentas escapar... (Probabilidad: " << chanceHuida << "%)" << endl;
 
-            if (rand() % 100 < chanceHuida) {
+            if (Rng::get().probabilidad(chanceHuida)) {
                 cout << "[HUIDA] ¡Lograste escapar!" << endl;
                 huidaExitosa = true;
                 system("pause");
@@ -475,7 +473,6 @@ bool turnoJugador(Personaje &p, Monstruo &m, int &turnosAbsorcion) {
                 system("pause");
             }
 
-            // Intentar huir (exitoso o no) siempre consume el turno.
             accionValida = true;
         }
     }
@@ -497,48 +494,50 @@ bool turnoJugador(Personaje &p, Monstruo &m, int &turnosAbsorcion) {
             ejecutarHabilidadMonstruo(m, p, idHab);
             usoHabilidad = true;
         }
-        else if (rand() % 100 < 40) {
-            int idHab = m.habilidadesIds[static_cast<size_t>(rand()) % m.habilidadesIds.size()];
+        else if (Rng::get().probabilidad(40)) {
+            int indexHab = Rng::get().entre(0, static_cast<int>(m.habilidadesIds.size()) - 1);
+            int idHab = m.habilidadesIds[static_cast<size_t>(indexHab)];
             bool huyo = ejecutarHabilidadMonstruo(m, p, idHab);
             if (huyo) monstruoHuyo = true; 
             usoHabilidad = true;
         }
     }
 
-    if (!usoHabilidad && !monstruoHuyo) {
-        
-        // -------------------------------------------------------
-        // PARCHE 5: Escudo del compañero (Pacto de Sangre)
-        // -------------------------------------------------------
-        if (p.turnosEscudoCompanero > 0) {
-            p.turnosEscudoCompanero--;
-            cout << "[COMPANERO] Tu bestia absorbe el golpe de " << m.nombre << "!" << endl;
-            // No se aplica dano al jugador este turno
-        } else {
-            // Calculo de dano normal
-            double factorBase = (double)m.ataque / (p.defensaBase + p.artefactoEquipado.defensa); 
-            int dEnemigo = static_cast<int>((static_cast<double>(p.hpMax) * 0.05) * factorBase);
-            dEnemigo = max(1, dEnemigo);
+    if (!monstruoHuyo) {
+        if (p.tieneReliquia("Calavera de Valdrame") && m.hp > 0) {
+            int absorcion = max(1, static_cast<int>(static_cast<float>(m.hp) * 0.05f));
+            m.hp -= absorcion;
+            p.hp = min(p.hpMax, p.hp + absorcion);
+            cout << "[RELIQUIA] Calavera de Valdrame: ¡Absorbes " << absorcion << " HP de " << m.nombre << "!" << endl;
+        }
 
-            p.hp -= dEnemigo;
-            cout << "[ENE] " << m.nombre << " (Nvl " << m.nivelEnemigo << ") te golpea por " << dEnemigo << " de dano." << endl;
-            
-            if (p.tieneReliquia("Calavera de Valdrame") && m.hp > 0) {    
-                int absorcion = max(1, static_cast<int>(static_cast<float>(m.hp) * 0.05f));    
-                m.hp  -= absorcion;    
-                p.hp   = min(p.hpMax, p.hp + absorcion);    
-                cout << "[RELIQUIA] Calavera de Valdrame: ¡Absorbes " << absorcion << " HP de " << m.nombre << "!" << endl;
-            }
+        if (!usoHabilidad) {
+            // -------------------------------------------------------
+            // PARCHE 5: Escudo del compañero (Pacto de Sangre)
+            // -------------------------------------------------------
+            if (p.turnosEscudoCompanero > 0) {
+                p.turnosEscudoCompanero--;
+                cout << "[COMPANERO] Tu bestia absorbe el golpe de " << m.nombre << "!" << endl;
+                // No se aplica dano al jugador este turno
+            } else {
+                // Calculo de dano normal
+                double factorBase = (double)m.ataque / (p.defensaBase + p.artefactoEquipado.defensa);
+                int dEnemigo = static_cast<int>((static_cast<double>(p.hpMax) * 0.05) * factorBase);
+                dEnemigo = max(1, dEnemigo);
 
-            if (p.tieneReliquia("Amuleto de Sangre") && m.hp > 0) {
-                if (rand() % 100 < 20) {
-                    m.hp -= 10;
-                    cout << "[RELIQUIA] Amuleto de Sangre contraataca por 10 de dano!" << endl;
+                p.hp -= dEnemigo;
+                cout << "[ENE] " << m.nombre << " (Nvl " << m.nivelEnemigo << ") te golpea por " << dEnemigo << " de dano." << endl;
+
+                if (p.tieneReliquia("Amuleto de Sangre") && m.hp > 0) {
+                    if (Rng::get().probabilidad(20)) {
+                        m.hp -= 10;
+                        cout << "[RELIQUIA] Amuleto de Sangre contraataca por 10 de dano!" << endl;
+                    }
                 }
-            }
 
-            p.usarPocionAuto();
-        } // Fin del else (sin escudo)
+                p.usarPocionAuto();
+            } // Fin del else (sin escudo)
+        }
     }
 
     // =========================================================
@@ -590,7 +589,7 @@ void resolverFinDeCombate(Personaje &p, Monstruo &m, int y, bool huidaExitosa, b
     }
 
     if (m.hp <= 0 && y < 241) {
-        int oroGanado = (m.nivelEnemigo * 35) + (rand() % 25); 
+        int oroGanado = (m.nivelEnemigo * 35) + Rng::get().entre(0, 24);
         if (p.tieneReliquia("Piedra del Alma")) {
             oroGanado = static_cast<int>(static_cast<float>(oroGanado) * 1.25f);
             cout << "[RELIQUIA] Piedra del Alma: +25% oro!" << endl;
@@ -609,6 +608,7 @@ void resolverFinDeCombate(Personaje &p, Monstruo &m, int y, bool huidaExitosa, b
         p.exp += m.expAlMorir;
         
         if (m.nombre == "ARZOBISPO VALDRAME") {
+                p.valdrameDerrotado = true;
                 gestionarLootValdrame(p); 
         } else {
                 gestionarLoot(p, y, m.esRaro);
@@ -651,9 +651,9 @@ void iniciarCombate(Personaje &p, int y) {
     // =========================================================
     // Combate Valdrame
     // =========================================================
-    // CORRECCIÓN: generarEnemigo ahora retorna optional, usamos value_or con monstruo de error
+    // Valdrame solo debe aparecer en la Iglesia (Y = 60) cuando el evento aún no fue completado.
     Monstruo errorMonstruo{"Error", 1, 1, 1, 1, 0, 1, 1, false};
-    Monstruo m = (y >= 60 && y <= 62) ? generarValdrame() : generarEnemigo(y).value_or(errorMonstruo);
+    Monstruo m = (y == 60 && !p.valdrameDerrotado) ? generarValdrame() : generarEnemigo(y).value_or(errorMonstruo);
     
     int hpInicial = m.hp; // Mantengo tu variable para el HUD y las fases
     bool fase2 = false;
@@ -667,6 +667,18 @@ void iniciarCombate(Personaje &p, int y) {
     string etiqueta = m.esJefe ? "[JEFE] " : m.esElite ? "[ELITE] " : m.esRaro ? "[RARO] " : "";
     string tituloCombate = string("COMBATE CONTRA: ") + etiqueta + m.nombre;
     mostrarCabecera(tituloCombate);
+    // --- NUEVO: Reacción visual de Naturaleza del Monstruo ---
+    if (m.naturaleza == "Feroz") {
+        cout << "[!] ¡El enemigo ruge con furia! Sus ataques aumentan su ferocidad." << endl;
+    } else if (m.naturaleza == "Robusto") {
+        cout << "[!] ¡La piel del enemigo es dura como la roca! Su defensa es impenetrable." << endl;
+    } else if (m.naturaleza == "Veloz") {
+        cout << "[!] ¡El enemigo se mueve con agilidad pasmosa! Sus reflejos son letales." << endl;
+    } else if (m.naturaleza == "Sabio") {
+        cout << "[!] ¡Una energía arcana rodea al enemigo! Su poder mental es amenazante." << endl;
+    } else if (m.naturaleza == "Salvaje") {
+        cout << "[!] ¡El instinto salvaje desborda al enemigo! Su fuerza bruta no tiene freno." << endl;
+    }
 
     // NUEVO 1.31: Lore de introduccion del Arzobispo al entrar en combate
     if (m.nombre == "ARZOBISPO VALDRAME") {

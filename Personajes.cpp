@@ -5,11 +5,12 @@
 #include "Utilidades.h"
 #include "Consumibles.h"
 #include "Habilidades.h"
+#include "Recursos.h"
 
 using namespace std;
 
 // =========================================================
-// BLOQUE 4: Personajes     Version 1.32
+// BLOQUE 4: Personajes     Version 1.4
 // =========================================================
 
 // Inicio del personaje con Atributos Base
@@ -22,11 +23,10 @@ Personaje::Personaje(string n, int tipo) {
     
     usadaPluma = false;
     bonusCritico = 0;
+    valdrameDerrotado = false;
 
-    // --- NUEVO 1.32: Flags de combate para las Ultimates de nivel 20 ---
-    // ultimoTurnoAtaco: Flecha del Juicio Final requiere haber atacado el turno anterior
-    // turnosAgotado: Colapso Solar bloquea habilidades N turnos tras usarla
-    // turnosEscudoCompanero: Pacto de Sangre — el companero absorbe el proximo golpe
+    // --- Ultimates de nivel 20 ---
+    
     ultimoTurnoAtaco      = false;
     turnosAgotado         = 0;
     turnosEscudoCompanero = 0;
@@ -55,6 +55,12 @@ Personaje::Personaje(string n, int tipo) {
     if (clase == "Guerrero") ataqueBase = fuerza * 2;
     else if (clase == "Mago") ataqueBase = inteligencia * 2;
     else ataqueBase = destreza * 2;
+
+    // =========================================================
+    // INICIALIZACIÓN DEL SISTEMA DE RECURSOS (Ira, Maná, Enfoque)
+    // =========================================================
+    inicializarRecurso(*this);
+
 }
 
 // Determina si un personaje tiene una reliquia (Uso de const para evitar warnings)
@@ -74,10 +80,17 @@ void Personaje::usarPocionAuto() {
     for(size_t i = 0; i < inventario.size(); i++) {
         if (inventario[i].id < 10) {
             // Se usa static_cast para comparar tipos de forma segura
-            if (hp < static_cast<int>(hpMax * 0.35) && inventario[i].id == 3) { idx = static_cast<int>(i); break; }
-            if (hp < static_cast<int>(hpMax * 0.60) && inventario[i].id == 2) { idx = static_cast<int>(i); break; }
-            if (hp < static_cast<int>(hpMax * 0.85) && inventario[i].id == 1) { idx = static_cast<int>(i); break; }
+            // 1. Emergencia crítica: Poción de Dragón (ID 4) si estás por debajo del 20%
             if (hp < static_cast<int>(hpMax * 0.20) && inventario[i].id == 4) { idx = static_cast<int>(i); break; }
+            
+            // 2. Daño grave: Poción Alta (ID 3) si estás por debajo del 35%
+            if (hp < static_cast<int>(hpMax * 0.35) && inventario[i].id == 3) { idx = static_cast<int>(i); break; }
+            
+            // 3. Daño moderado: Poción Media (ID 2) si estás por debajo del 60%
+            if (hp < static_cast<int>(hpMax * 0.60) && inventario[i].id == 2) { idx = static_cast<int>(i); break; }
+            
+            // 4. Desgaste leve: Poción Baja (ID 1) si estás por debajo del 85%
+            if (hp < static_cast<int>(hpMax * 0.85) && inventario[i].id == 1) { idx = static_cast<int>(i); break; }
         }
     }
 
@@ -95,8 +108,11 @@ void Personaje::usarPocionAuto() {
 
 // Función para subir de nivel con crecimiento diferenciado
 void Personaje::subirNivel() {
-    int expNecesaria = nivel * 50;
-    while (exp >= expNecesaria) {
+    // NUEVA FÓRMULA: Escalamiento de aumento lineal
+    int expNecesaria = (nivel * (nivel + 1) / 2) * 50; 
+    
+    while (exp >= expNecesaria) 
+    {
         exp -= expNecesaria;
         nivel++;
 
@@ -122,7 +138,7 @@ void Personaje::subirNivel() {
         defensaBase += 3;
         velocidadBase += 2; // Mantener la progresión de velocidad para turnos
         
-        expNecesaria = nivel * 50;
+        expNecesaria = (nivel * (nivel + 1) / 2) * 50;
         cout << "\n----------------------------------------" << endl;
         cout << ">>> FELICIDADES  HAS SUBIDO AL NIVEL " << nivel << " <<<" << endl;
         cout << "Tus fuerzas de " << clase << " aumentan considerablemente." << endl;

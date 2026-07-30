@@ -69,12 +69,22 @@ void gestionarLoot(Personaje &p, int y, bool raro)
             size_t index = static_cast<size_t>(Rng::get().entre(0, (int)posibles.size() - 1));
             nW = posibles[index];
 
-            // CORRECCION: antes se multiplicaba el poder DOS veces cuando el
-            // arma era rara (una vez por "m" = 1.2x, y otra por este 1.15x),
-            // dando un bono real de ~1.38x en vez del ~1.15x que el nombre
-            // "+" sugiere. Se deja un solo multiplicador.
             if (raro) {
-                nW.nombre += "+";
+                // Afijos dinámicos según el efecto que le tocó al arma
+                if (nW.efectoId == 1) {
+                    nW.nombre += " Llameante";
+                } else if (nW.efectoId == 2) {
+                    nW.nombre += " Tóxico/a";
+                } else if (nW.efectoId == 3) {
+                    nW.nombre += " Sangriento/a";
+                } else if (nW.efectoId == 4) {
+                    nW.nombre += " Paralizante";
+                } else if (nW.efectoId == 5) {
+                    nW.nombre += " Esquivo/a";
+                } else {
+                    nW.nombre += "+"; // Por si cae otro efecto
+                }
+
                 nW.poder = static_cast<int>(static_cast<float>(nW.poder) * 1.15f + 0.5f);
             }
 
@@ -211,7 +221,8 @@ void gestionarLootValdrame(Personaje& p) {
     }
 
     if (!posibles.empty()) {
-        Arma nW = posibles[static_cast<size_t>(rand()) % posibles.size()];
+        int index = Rng::get().entre(0, static_cast<int>(posibles.size()) - 1);
+        Arma nW = posibles[static_cast<size_t>(index)];
 
         cout << "\n========================================" << endl;
         cout << "  *** ARMA ELITE: " << nW.nombre << " ***" << endl;
