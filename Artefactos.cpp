@@ -1,17 +1,16 @@
 #include "Artefactos.h"
+#include "Enums.h"
 #include "Rng.h"
 #include <iostream>
 
-using namespace std;
-
 // --- Constructor ---
 // e == -1 es la senal para asignar efecto aleatorio a artefactos Raros
-Artefacto::Artefacto(int i, const string& n, int d, const string& r, int e, const string& c, int z, int pr)
-    : id(i), nombre(n), defensa(d), rareza(r), efectoId(e), clase(c), zona(z), precio(pr) {
+Artefacto::Artefacto(int i, const std::string& n, int d, const std::string& r, int e, const std::string& c, int z, int pr)
+    : id(i), nombre(n), defensa(d), rareza(rarezaFromString(r).value_or(Rareza::Comun)), efectoId(e), clase(claseFromString(c).value_or(Clase::Ninguno)), zona(z), precio(pr) {
     
     // Logica hibrida: Azar solo para Raros con senal -1
     // NOTA: Solo se activa si se pasa e == -1 explicitamente al crear el artefacto
-    if (rareza == "Raro" && e == -1) {
+    if (rareza == Rareza::Raro && e == -1) {
         // Centralizamos el efecto aleatorio de los artefactos raros en el RNG único del proyecto.
         efectoId = Rng::get().entre(1, 5);
     }
@@ -19,19 +18,19 @@ Artefacto::Artefacto(int i, const string& n, int d, const string& r, int e, cons
 }
 
 void Artefacto::mostrarInfo() const {
-    cout << "ID: " << id
+    std::cout << "ID: " << id
          << " | Artefacto: " << nombre
          << " | Defensa: " << defensa
-         << " | Rareza: " << rareza
-         << " | Clase: " << clase
+         << " | Rareza: " << rarezaToString(rareza)
+         << " | Clase: " << claseToString(clase)
          << " | Zona: " << zona
          << " | Precio: " << precio;
 
     if (efectoId == 0) {
-        cout << " | Efecto: Ninguno";
+        std::cout << " | Efecto: Ninguno";
     } else {
-        cout << " | EfectoId: " << efectoId;
+        std::cout << " | EfectoId: " << efectoId;
     }
     
-    cout << endl;
+    std::cout << std::endl;
 }

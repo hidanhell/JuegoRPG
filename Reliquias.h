@@ -3,12 +3,13 @@
 
 #include <string>
 #include <vector>
+#include "Enums.h"
 
 struct Reliquia {
     int id;
     std::string nombre;
     std::string efecto;
-    std::string rareza;
+    Rareza rareza;
 
     Reliquia(int i = 0,
              std::string n = "-",

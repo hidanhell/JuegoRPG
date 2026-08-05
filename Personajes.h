@@ -1,18 +1,19 @@
 #pragma once
 #include <string>
 #include <vector>
+#include "Enums.h"
 #include "Armas.h"
-#include "Artefactos.h" 
+#include "Artefactos.h"
 #include "Efectos.h"
 #include "Consumibles.h"
-
-using namespace std;
 
 struct Monstruo; // Declaracion anticipada para evitar include circular
 
 struct Personaje {
     // --- Identidad y Lore ---
-    string nombre, clase, nombreAtaque;
+    std::string nombre;
+    Clase clase;
+    std::string nombreAtaque;
     int nivel, exp, oro;
     int posX, posY;
 
@@ -42,15 +43,15 @@ struct Personaje {
     // --- Equipamiento e Inventario ---
     Arma armaEquipada;
     Artefacto artefactoEquipado;
-    vector<Consumible> inventario; // Bolsa de consumibles (pociones, elixires)
-    vector<string> reliquias;      // Objetos unicos con efectos pasivos
+    std::vector<Consumible> inventario; // Bolsa de consumibles (pociones, elixires)
+    std::vector<std::string> reliquias;      // Objetos unicos con efectos pasivos
     
     // --- Estados y Control ---
     bool usadaPluma;
-    vector<Efecto> efectos; // Veneno, Quemadura, Sangrado, etc.
+    std::vector<Efecto> efectos; // Veneno, Quemadura, Sangrado, etc.
 
     // --- Registro de habilidades desbloqueadas ---
-    vector<int> habilidadesIds; // IDs de habilidades que el personaje ha aprendido
+    std::vector<int> habilidadesIds; // IDs de habilidades que el personaje ha aprendido
 
     // --- Flags de progresion ---
     bool tieneHabilidad10  = false;  // Controla desbloqueo de nivel 10
@@ -61,9 +62,9 @@ struct Personaje {
     bool subclaseAplicada  = false; // Para no aplicar el x1.40 dos veces si vuelves al menu
 
     // --- Funciones Principales ---
-    Personaje(string n, int tipo);
+    Personaje(std::string n, int tipo);
 
-    bool tieneReliquia(const string &r);
+    bool tieneReliquia(const std::string &r);
     void usarPocionAuto(); // Logica de supervivencia automatica
     void subirNivel();     // Escalado automatico de atributos y desbloqueo de habilidades
     void reaparecer();     // Reset al morir (vuelve a la aldea)

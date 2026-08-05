@@ -2,15 +2,16 @@
 #define ARMAS_H
 
 #include <string>
+#include "Enums.h"
 
 // --- Arma ---
 struct Arma {
     int id;                 // Identificador único
     std::string nombre;     // Nombre del arma
     int poder;              // Daño base
-    std::string rareza;     // Común, Raro, Épico, Legendario, Elite
+    Rareza rareza;          // Común, Raro, Épico, Legendario, Elite
     int efectoId;           // ID del efecto de estado (0 = ninguno, -1 = aleatorio para Raros)
-    std::string clase;      // Guerrero, Mago, Cazador
+    Clase clase;            // Guerrero, Mago, Cazador
     int zona;               // Zona de aparición (1-4)
     int precio;             // Costo en la tienda
     int habilidadId;        // ID de habilidad especial del arma (0 = ninguna, solo armas Elite)

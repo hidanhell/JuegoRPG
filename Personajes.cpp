@@ -33,15 +33,15 @@ Personaje::Personaje(string n, int tipo) {
     
     // Asignación de Atributos por Clase
     if (tipo == 1) { // Guerrero: Enfocado en Fuerza y Vitalidad
-        clase = "Guerrero"; nombreAtaque = "Hachazo Brutal";
+        clase = Clase::Guerrero; nombreAtaque = "Hachazo Brutal";
         fuerza = 15; destreza = 8; inteligencia = 5; vitalidad = 12;
         defensaBase = 28; velocidadBase = 10;
     } else if (tipo == 2) { // Mago: Enfocado en Inteligencia
-        clase = "Mago"; nombreAtaque = "Explosion Ignea";
+        clase = Clase::Mago; nombreAtaque = "Explosion Ignea";
         fuerza = 5; destreza = 10; inteligencia = 18; vitalidad = 8;
         defensaBase = 4; velocidadBase = 18;
     } else { // Cazador: Enfocado en Destreza y Velocidad
-        clase = "Cazador"; nombreAtaque = "Flecha Perforante";
+        clase = Clase::Cazador; nombreAtaque = "Flecha Perforante";
         fuerza = 10; destreza = 15; inteligencia = 8; vitalidad = 10;
         defensaBase = 6; velocidadBase = 28;
     }
@@ -52,8 +52,8 @@ Personaje::Personaje(string n, int tipo) {
     hp = hpMax;
     
     // El ataque ahora escala con el atributo principal de la clase
-    if (clase == "Guerrero") ataqueBase = fuerza * 2;
-    else if (clase == "Mago") ataqueBase = inteligencia * 2;
+    if (clase == Clase::Guerrero) ataqueBase = fuerza * 2;
+    else if (clase == Clase::Mago) ataqueBase = inteligencia * 2;
     else ataqueBase = destreza * 2;
 
     // =========================================================
@@ -117,9 +117,9 @@ void Personaje::subirNivel() {
         nivel++;
 
         // Aumento de atributos base según el Lore de la clase
-        if (clase == "Guerrero") {
+        if (clase == Clase::Guerrero) {
             fuerza += 4; vitalidad += 3; destreza += 1;
-        } else if (clase == "Mago") {
+        } else if (clase == Clase::Mago) {
             inteligencia += 5; vitalidad += 1; destreza += 2;
         } else { // Cazador
             destreza += 4; vitalidad += 2; fuerza += 2;
@@ -131,8 +131,8 @@ void Personaje::subirNivel() {
         hp = hpMax;
         
         // Recalcular Ataque: Un valor fijo + bono de stat principal
-        if (clase == "Guerrero") ataqueBase += 3 + (fuerza / 4);
-        else if (clase == "Mago") ataqueBase += 3 + (inteligencia / 4);
+        if (clase == Clase::Guerrero) ataqueBase += 3 + (fuerza / 4);
+        else if (clase == Clase::Mago) ataqueBase += 3 + (inteligencia / 4);
         else ataqueBase += 3 + (destreza / 4);
 
         defensaBase += 3;
@@ -141,7 +141,7 @@ void Personaje::subirNivel() {
         expNecesaria = (nivel * (nivel + 1) / 2) * 50;
         cout << "\n----------------------------------------" << endl;
         cout << ">>> FELICIDADES  HAS SUBIDO AL NIVEL " << nivel << " <<<" << endl;
-        cout << "Tus fuerzas de " << clase << " aumentan considerablemente." << endl;
+        cout << "Tus fuerzas de " << claseToString(clase) << " aumentan considerablemente." << endl;
         cout << "----------------------------------------" << endl;
 
 // --- DESBLOQUEO DE ÁRBOL DE HABILIDADES ---
@@ -159,7 +159,7 @@ void Personaje::subirNivel() {
             }
         }
 
-        if (nivel >= 5 && clase == "Guerrero" && !tieneHabilidad5) {
+        if (nivel >= 5 && clase == Clase::Guerrero && !tieneHabilidad5) {
             cout << "\nHas alcanzado el nivel 5. Tu espiritu guerrero despierta..." << endl;
             cout << "Debes elegir tu senda:\n";
             cout << "1. Guardia de Hierro (+5 defensa con escudos)\n";
@@ -193,33 +193,33 @@ void Personaje::subirNivel() {
         for (int id : habilidadesIds) {
             if (id >= 101 && id <= 103) {
                 tieneHabilidad10 = true;
-        break;
-    }
-}
+                break;
+            }
+        }
 
-if (nivel >= 10 && clase == "Guerrero" && !tieneHabilidad10) {
-    cout << "\nHas alcanzado el nivel 10. Tu furia guerrera se convierte en poder desatado..." << endl;
-    cout << "Debes elegir tu nueva habilidad activa:\n";
-    cout << "1. Embate con Escudo (dano + paralisis)\n";
-    cout << "2. Tajo Sangriento (dano + sangrado)\n";
-    cout << "3. Frenesi (multi-hit + sangrado, pero paralisis al usuario)\n";
-    cout << "Elige (1-3): ";
+        if (nivel >= 10 && clase == Clase::Guerrero && !tieneHabilidad10) {
+            cout << "\nHas alcanzado el nivel 10. Tu furia guerrera se convierte en poder desatado..." << endl;
+            cout << "Debes elegir tu nueva habilidad activa:\n";
+            cout << "1. Embate con Escudo (dano + paralisis)\n";
+            cout << "2. Tajo Sangriento (dano + sangrado)\n";
+            cout << "3. Frenesi (multi-hit + sangrado, pero paralisis al usuario)\n";
+            cout << "Elige (1-3): ";
 
-    int eleccion; cin >> eleccion;
-    if (eleccion == 1) {
-        habilidadesIds.push_back(101);
-    } else if (eleccion == 2) {
-        habilidadesIds.push_back(102);
-    } else if (eleccion == 3) {
-        habilidadesIds.push_back(103);
-    }
+            int eleccion; cin >> eleccion;
+            if (eleccion == 1) {
+                habilidadesIds.push_back(101);
+            } else if (eleccion == 2) {
+                habilidadesIds.push_back(102);
+            } else if (eleccion == 3) {
+                habilidadesIds.push_back(103);
+            }
 
-    cout << "---Has desbloqueado la habilidad activa:--- " 
-         << obtenerHabilidadPorId(habilidadesIds.back()).value_or(Habilidad{0,"?","",0,0,"",0}).nombre << "!" << endl;
-}
+            cout << "---Has desbloqueado la habilidad activa:--- "
+                 << obtenerHabilidadPorId(habilidadesIds.back()).value_or(Habilidad{0,"?","",0,0,"",0}).nombre << "!" << endl;
+        }
 
         //-----Habilidades Pasivas Nivel 15 (Subclases)
-if (nivel >= 15 && clase == "Guerrero" && !tieneSubclase15) {
+if (nivel >= 15 && clase == Clase::Guerrero && !tieneSubclase15) {
     cout << "\nHas alcanzado el nivel 15. Tu camino se define..." << endl;
     cout << "Debes elegir tu subclase:\n";
     cout << "1. Paladin (+25% defensa, +25% vitalidad)\n";
@@ -253,7 +253,7 @@ if (nivel >= 15 && clase == "Guerrero" && !tieneSubclase15) {
         // NUEVO 1.32: El jugador no elige, la ultimate se asigna segun la subclase de nivel 15.
         // Paladin -> Ira del Cielo (ID 301) | Berserker -> Ultima Bestia (ID 302)
         // tieneUltimate20 evita que se repita si subes mas de un nivel de golpe.
-        if (nivel >= 20 && clase == "Guerrero" && !tieneUltimate20) {
+        if (nivel >= 20 && clase == Clase::Guerrero && !tieneUltimate20) {
             cout << "\n========================================" << endl;
             cout << "  NIVEL 20 — EL PODER DEFINITIVO" << endl;
             cout << "  Tu voluntad como guerrero alcanza su cima." << endl;
@@ -299,7 +299,7 @@ if (nivel >= 15 && clase == "Guerrero" && !tieneSubclase15) {
             }
         }
 
-        if (nivel >= 5 && clase == "Mago" && !tieneHabilidad5Mago) {
+        if (nivel >= 5 && clase == Clase::Mago && !tieneHabilidad5Mago) {
             cout << "\nHas alcanzado el nivel 5. El poder arcano despierta en tu interior..." << endl;
             cout << "Debes elegir tu senda:\n";
             cout << "1. Muro de Hielo (+5 defensa)\n";
@@ -334,7 +334,7 @@ if (nivel >= 15 && clase == "Guerrero" && !tieneSubclase15) {
             }
         }
 
-        if (nivel >= 10 && clase == "Mago" && !tieneHabilidad10Mago) {
+        if (nivel >= 10 && clase == Clase::Mago && !tieneHabilidad10Mago) {
             cout << "\nHas alcanzado el nivel 10. Tu poder arcano se desata..." << endl;
             cout << "Debes elegir tu nueva habilidad activa:\n";
             cout << "1. Bola de Fuego (dano + quemadura)\n";
@@ -353,7 +353,7 @@ if (nivel >= 15 && clase == "Guerrero" && !tieneSubclase15) {
 
 
         //-----Habilidades Pasivas Nivel 15 (Subclases)
-        if (nivel >= 15 && clase == "Mago" && !tieneSubclase15) {
+        if (nivel >= 15 && clase == Clase::Mago && !tieneSubclase15) {
             cout << "\nHas alcanzado el nivel 15. Tu camino se define..." << endl;
             cout << "Debes elegir tu subclase:\n";
             cout << "1. Fuego (+25% intelecto, +25% vitalidad)\n";
@@ -376,7 +376,7 @@ if (nivel >= 15 && clase == "Guerrero" && !tieneSubclase15) {
 
         //-----Habilidades Ultimate Nivel 20 (Mago)
         // NUEVO 1.32: Mago Fuego -> Colapso Solar (ID 311) | Mago Hielo -> Absoluto Cero (ID 312)
-        if (nivel >= 20 && clase == "Mago" && !tieneUltimate20) {
+        if (nivel >= 20 && clase == Clase::Mago && !tieneUltimate20) {
             cout << "\n========================================" << endl;
             cout << "  NIVEL 20 — EL PODER DEFINITIVO" << endl;
             cout << "  La magia en ti alcanza su forma mas pura." << endl;
@@ -422,7 +422,7 @@ if (nivel >= 15 && clase == "Guerrero" && !tieneSubclase15) {
             }
         }
 
-        if (nivel >= 5 && clase == "Cazador" && !tieneHabilidad5Cazador) {
+        if (nivel >= 5 && clase == Clase::Cazador && !tieneHabilidad5Cazador) {
             cout << "\nHas alcanzado el nivel 5. Tus sentidos se agudizan y tu instinto cazador despierta..." << endl;
             cout << "Debes elegir tu senda:\n";
             cout << "1. Ojo de Halcon (+5 destreza)\n";
@@ -457,7 +457,7 @@ if (nivel >= 15 && clase == "Guerrero" && !tieneSubclase15) {
             }
         }
 
-        if (nivel >= 10 && clase == "Cazador" && !tieneHabilidad10Cazador) {
+        if (nivel >= 10 && clase == Clase::Cazador && !tieneHabilidad10Cazador) {
             cout << "\nHas alcanzado el nivel 10. Tus instintos cazadores se perfeccionan..." << endl;
             cout << "Debes elegir tu nueva habilidad activa:\n";
             cout << "1. Flecha Venenosa (dano + veneno)\n";
@@ -475,7 +475,7 @@ if (nivel >= 15 && clase == "Guerrero" && !tieneSubclase15) {
         }
 
         //-----Habilidades Pasivas Nivel 15 (Subclases)
-        if (nivel >= 15 && clase == "Cazador" && !tieneSubclase15) {
+        if (nivel >= 15 && clase == Clase::Cazador && !tieneSubclase15) {
             cout << "\nHas alcanzado el nivel 15. Tu camino se define..." << endl;
             cout << "Debes elegir tu subclase:\n";
             cout << "1. Punteria (+25% destreza, +25% velocidad)\n";
@@ -498,7 +498,7 @@ if (nivel >= 15 && clase == "Guerrero" && !tieneSubclase15) {
 
         //-----Habilidades Ultimate Nivel 20 (Cazador)
         // NUEVO 1.32: Punteria -> Flecha del Juicio Final (ID 321) | Bestias -> Pacto de Sangre (ID 322)
-        if (nivel >= 20 && clase == "Cazador" && !tieneUltimate20) {
+        if (nivel >= 20 && clase == Clase::Cazador && !tieneUltimate20) {
             cout << "\n========================================" << endl;
             cout << "  NIVEL 20 — EL PODER DEFINITIVO" << endl;
             cout << "  Tu precision y tus instintos llegan al limite." << endl;
@@ -567,14 +567,15 @@ void Personaje::reaparecer() {
     esperarTecla();
 }
 
-// =========================================================
-// NUEVA FUNCIÓN: Sincronizador de estadísticas 1.30
-// =========================================================
+// Sincroniza estadísticas derivadas después de cambios en atributos.
+// Usada tras cargar una partida o al modificar atributos para asegurar
+// que `hpMax`, `ataqueBase` y límites de `hp` estén consistentes.
 void Personaje::actualizarEstadisticas() {
-    /* 
-       En la Versión 1.30, los incrementos son acumulativos en subirNivel()
-       para respetar los bonos elegidos por el usuario.
-       Esta función queda como puente técnico para futuras expansiones
-       (como un sistema de 'Respec' o reinicio de talentos, o el NG+).
-    */
+    hpMax = 50 + (vitalidad * 5);
+
+    if (clase == Clase::Guerrero) ataqueBase = fuerza * 2;
+    else if (clase == Clase::Mago) ataqueBase = inteligencia * 2;
+    else ataqueBase = destreza * 2;
+
+    if (hp > hpMax) hp = hpMax;
 }

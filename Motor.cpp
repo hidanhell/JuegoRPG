@@ -61,10 +61,10 @@ int main() {
     if (aMinuscula(decision) == 's') {
         Arma inicial(0, "-", 0, "Comun", 0, "Ninguno", 0, 0);
 
-        if (p.clase == "Guerrero") {
+        if (p.clase == Clase::Guerrero) {
             inicial = Arma(1, "Espada Oxidada", 12, "Comun", 0, "Guerrero", 1, 0);
             cout << "\nEntre el polvo encuentras una Espada Oxidada y una Pocion Baja." << endl;
-        } else if (p.clase == "Mago") {
+        } else if (p.clase == Clase::Mago) {
             inicial = Arma(7, "Varita Astillada", 12, "Comun", 0, "Mago", 1, 0);
             cout << "\nEntre el polvo encuentras una Varita Astillada y una Pocion Baja." << endl;
         } else { // Cazador
@@ -90,7 +90,7 @@ int main() {
         cout << "POSICION: [X: " << p.posX << " | Y: " << p.posY << "]" << endl;
 
         // --- HUD ---
-        cout << "=============== " << p.nombre << " (" << p.clase;
+        cout << "=============== " << p.nombre << " (" << claseToString(p.clase);
         if (p.tieneSubclase15) {
             int idSubclase = p.habilidadesIds.back();
             if (auto h = obtenerHabilidadPorId(idSubclase)) cout << " ===> " << h->nombre;
@@ -165,7 +165,7 @@ int main() {
             mostrarCabecera("STATUS DE " + p.nombre);
 
             // Clase y subclase
-            cout << "Clase: " << p.clase;
+            cout << "Clase: " << claseToString(p.clase);
             if (p.tieneSubclase15) {
                 int idSubclase = p.habilidadesIds.back();
                 if (auto h = obtenerHabilidadPorId(idSubclase)) cout << " → " << h->nombre;
@@ -361,8 +361,8 @@ int main() {
             char cL; cin >> cL;
             if (tolower(cL) == 's') {
                 Arma legend(0, "-", 0, "Comun", 0, "Ninguno", 0, 0);
-                if (p.clase == "Guerrero") legend = excalibur;
-                else if (p.clase == "Mago") legend = bastonDragon;
+                if (p.clase == Clase::Guerrero) legend = excalibur;
+                else if (p.clase == Clase::Mago) legend = bastonDragon;
                 else legend = arcoAlma;
 
                 p.armaEquipada = legend;

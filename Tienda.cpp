@@ -154,14 +154,14 @@ void entrarTienda(Personaje &p) {
                         if (!yaTiene) {
                             // Precio según rareza
                             int precio = 0;
-                            if (rel.rareza == "Comun") precio = 300;
-                            else if (rel.rareza == "Raro") precio = 700;
-                            else if (rel.rareza == "Epico") precio = 1500;
+                            if (rel.rareza == Rareza::Comun) precio = 300;
+                            else if (rel.rareza == Rareza::Raro) precio = 700;
+                            else if (rel.rareza == Rareza::Epico) precio = 1500;
 
                             cout << idx << ". " << rel.nombre 
                                  << " (" << precio << " oro)" << endl;
                             cout << "   -> " << rel.efecto 
-                                 << " [" << rel.rareza << "]" << endl;
+                                 << " [" << rarezaToString(rel.rareza) << "]" << endl;
                             disponibles.push_back({precio, rel});
                             idx++;
                         }
@@ -190,15 +190,15 @@ void entrarTienda(Personaje &p) {
                                 } else if (elegida.nombre == "Medallon del Guardian") {
                                     p.defensaBase += 10;
                                     cout << "[BONUS] Defensa +10." << endl;
-                                } else if (elegida.nombre == "Garra del Berserker" && p.clase == "Guerrero") {
+                                } else if (elegida.nombre == "Garra del Berserker" && p.clase == Clase::Guerrero) {
                                     p.fuerza += 8;
                                     p.ataqueBase += 8;
                                     cout << "[BONUS] Fuerza +8." << endl;
-                                } else if (elegida.nombre == "Ojo del Arcano" && p.clase == "Mago") {
+                                } else if (elegida.nombre == "Ojo del Arcano" && p.clase == Clase::Mago) {
                                     p.inteligencia += 8;
                                     p.ataqueBase += 8;
                                     cout << "[BONUS] Inteligencia +8." << endl;
-                                } else if (elegida.nombre == "Pluma del Viento" && p.clase == "Cazador") {
+                                } else if (elegida.nombre == "Pluma del Viento" && p.clase == Clase::Cazador) {
                                     p.destreza += 8;
                                     p.ataqueBase += 8;
                                     cout << "[BONUS] Destreza +8." << endl;

@@ -1,7 +1,7 @@
 #include "combate.h"
 #include "Utilidades.h"
 #include "loot.h"
-#include "HabilidadesMonstruo.h" // NUEVO 1.31: Módulo de habilidades de enemigos
+#include "HabilidadesMonstruo.h" 
 #include <iostream>
 #include <algorithm>
 #include <cstdlib>
@@ -14,12 +14,12 @@
 #include "Habilidades.h"
 #include "Rng.h"
 #include "Recursos.h"
+
 using namespace std;
 
 /// =========================================================
-// BLOQUE M1: ENEMIGOS Y COMBATE DETALLADO 1.32
+// BLOQUE M1: ENEMIGOS Y COMBATE DETALLADO 1.4
 // =========================================================
-
 // -------------------------------------------------------------------
 // NOTA DE ARQUITECTURA (agregado en esta revision):
 // Este archivo se reorganizo en funciones mas pequenas para que cada
@@ -29,10 +29,9 @@ using namespace std;
 // tenias; solo se movio a su propia funcion con nombre.
 // -------------------------------------------------------------------
 
-extern std::vector<Monstruo> listaMonstruos; 
+extern std::vector<Monstruo> listaMonstruos;
 extern std::vector<Efecto> listaEfectos;
 extern std::vector<Efecto> listaEfectosLegendarios;
-
 
 // -------------------------------------------------------------------
 // NUEVO: declaracion temporal de aplicarEfectoLegendario (definida en
@@ -47,7 +46,7 @@ extern void aplicarEfectoLegendario(const Efecto &efecto, int &hpObjetivo, int a
 extern Arma armaLancelot;
 
 // Le avisa a este archivo que 'generarHorda' existe en otro lado (monstruosdatos.cpp)
-extern std::vector<Monstruo> generarHorda(int zonaDeseada); 
+extern std::vector<Monstruo> generarHorda(int zonaDeseada);
 
 // NUEVO 1.31: Le avisa que generarValdrame existe en monstruosdatos.cpp
 // Es el evento fijo del Arzobispo en Y=60
@@ -117,12 +116,12 @@ std::optional<Monstruo> generarEnemigo(int y) {
 void mostrarHUDCombate(const Personaje &p, const Monstruo &m, int hpInicial, const string &etiqueta) {
     cout << "====================================================" << endl;
     // NUEVO: Agregamos la visualización del recurso actual
-    cout << " " << p.nombre << " [" << p.hp << "/" << p.hpMax << " HP] | " 
+    cout << "  " << p.nombre << " [" << p.hp << "/" << p.hpMax << " HP] | "
          << p.tipoRecurso << ": " << p.recursoActual << "/" << p.recursoMax << endl;
-    cout << " VS " << etiqueta << m.nombre
+    cout << "  VS  " << etiqueta << m.nombre
          << " (Nvl " << m.nivelEnemigo << ") [" << m.hp << "/" << hpInicial << " HP]" << endl;
     if (!m.naturaleza.empty() && m.naturaleza != "Normal")
-        cout << " Naturaleza: " << m.naturaleza << endl;
+        cout << "  Naturaleza: " << m.naturaleza << endl;
     cout << "====================================================" << endl;
 }
 
@@ -133,9 +132,8 @@ void mostrarHUDCombate(const Personaje &p, const Monstruo &m, int hpInicial, con
 void procesarEstadosEnemigo(Monstruo &m, int hpInicial) {
     for (auto it = m.efectosActivos.begin(); it != m.efectosActivos.end(); ) {
         bool saltarTurno = false;
-        it->aplicar(m.hp, hpInicial, saltarTurno); 
+        it->aplicar(m.hp, hpInicial, saltarTurno);
         cout << "[ESTADO EN ENEMIGO] " << it->nombre << " afecta a " << m.nombre << "." << endl;
-
         it->duracion--;
         if (it->duracion <= 0) {
             cout << "[INFO] El estado " << it->nombre << " ha expirado." << endl;
@@ -149,9 +147,8 @@ void procesarEstadosEnemigo(Monstruo &m, int hpInicial) {
 void procesarEstadosJugador(Personaje &p) {
     for (auto it = p.efectos.begin(); it != p.efectos.end(); ) {
         bool saltarTurno = false;
-        it->aplicar(p.hp, p.hpMax, saltarTurno); 
+        it->aplicar(p.hp, p.hpMax, saltarTurno);
         cout << "[ESTADO EN TI] " << it->nombre << " te esta afectando." << endl;
-
         it->duracion--;
         if (it->duracion <= 0) {
             cout << "[INFO] Tu estado de " << it->nombre << " ha terminado." << endl;
@@ -178,8 +175,7 @@ void manejarFasesJefe(Monstruo &m, Personaje &p, int y,
     if (m.nombre == "ARZOBISPO VALDRAME" && p.hp > 0) {
         int auraDrenado = max(1, static_cast<int>(static_cast<float>(p.hp) * 0.05f));
         p.hp -= auraDrenado;
-        m.hp = min(hpInicial, m.hp + auraDrenado); 
-
+        m.hp = min(hpInicial, m.hp + auraDrenado);
         cout << "\n[AMBIENTE] La presencia de Valdrame esta drenando tu energia..." << endl;
         cout << "[BOSS] El Senor de los Muertos absorbe " << auraDrenado << " HP de tu fuerza vital." << endl;
     }
@@ -200,10 +196,9 @@ void manejarFasesJefe(Monstruo &m, Personaje &p, int y,
     // --- FASE 2: EL ESCUDO DEL REY (Activa al 50% de HP) ---
     if (y >= 241 && !fase2 && m.hp <= static_cast<int>(static_cast<float>(hpInicial) * 0.5f)) {
         fase2 = true;
-        m.defensa = static_cast<int>(static_cast<float>(m.defensa) * 1.30f); 
-        turnosAbsorcion = 2; 
-        
-        cout << "\n LANCELOT CAMBIA SUS ESCAMAS  Defensa aumentada." << endl;
+        m.defensa = static_cast<int>(static_cast<float>(m.defensa) * 1.30f);
+        turnosAbsorcion = 2;
+        cout << "\n  LANCELOT CAMBIA SUS ESCAMAS  Defensa aumentada." << endl;
         cout << "[MECANICA] Las escamas del Rey brillan con la magia corrupta de Angra." << endl;
         cout << "[PELIGRO] --Lancelot absorbera el dano de tus proximos--" << turnosAbsorcion << " ataques y lo convertira en vida!" << endl;
         system("pause");
@@ -212,17 +207,13 @@ void manejarFasesJefe(Monstruo &m, Personaje &p, int y,
     // --- FASE 3: LA FURIA DE ANGRA (Activa al 25% de HP) ---
     if (y >= 241 && !fase3 && m.hp <= static_cast<int>(static_cast<float>(hpInicial) * 0.25f)) {
         fase3 = true;
-        m.ataque   = static_cast<int>(static_cast<float>(m.ataque)   * 1.30f);
+        m.ataque = static_cast<int>(static_cast<float>(m.ataque) * 1.30f);
         m.velocidad = static_cast<int>(static_cast<float>(m.velocidad) * 1.30f);
-        
-        cout << "\n LANCELOT RUGE CON FURIA  Ataque y Velocidad aumentados." << endl;
+        cout << "\n  LANCELOT RUGE CON FURIA  Ataque y Velocidad aumentados." << endl;
         cout << "[MECANICA] La sombra de Angra toma el control total del Rey para un golpe a traicion..." << endl;
-        
         int danoEspecial = static_cast<int>(static_cast<float>(m.ataque) * 1.5f);
         p.hp -= danoEspecial;
-        
         cout << "[ENE] --Lancelot ejecuta 'ALIENTO DEL VACIO' y te causa-- " << danoEspecial << " de dano directo!" << endl;
-        
         if (p.hp > 0) {
             cout << "[SISTEMA] Has resistido el embate, pero estas gravemente herido." << endl;
         } else {
@@ -252,7 +243,6 @@ bool turnoJugador(Personaje &p, Monstruo &m, int &turnosAbsorcion) {
             cout << " | 2. Habilidades";
         cout << " | 3. Inventario | 4. Huir" << endl;
         // -------------------------------------------------------
-
         cout << "Seleccion: ";
         int opc;
         if (!(cin >> opc)) {
@@ -270,15 +260,14 @@ bool turnoJugador(Personaje &p, Monstruo &m, int &turnosAbsorcion) {
             if (esCritico) {
                 danoReal = static_cast<int>(static_cast<float>(danoReal) * 1.5f);
                 cout << "[CRITICO] Golpe devastador" << endl;
-
-                if (p.armaEquipada.rareza == "Elite")
-                        aplicarGritoDelCaido(m, p);
-            }
-
-            if (p.tieneReliquia("Colmillo de Vampiro")) {
-                int roboVida = static_cast<int>(static_cast<float>(danoReal) * 0.15f);
-                p.hp = min(p.hpMax, p.hp + roboVida);
-                cout << "[RELIQUIA] Recuperas " << roboVida << " HP." << endl;
+                if (p.armaEquipada.rareza == Rareza::Elite) {
+                    aplicarGritoDelCaido(m, p);
+                }
+                if (p.tieneReliquia("Colmillo de Vampiro")) {
+                    int roboVida = static_cast<int>(static_cast<float>(danoReal) * 0.15f);
+                    p.hp = min(p.hpMax, p.hp + roboVida);
+                    cout << "[RELIQUIA] Recuperas " << roboVida << " HP." << endl;
+                }
             }
 
             // -------------------------------------------------------
@@ -289,7 +278,7 @@ bool turnoJugador(Personaje &p, Monstruo &m, int &turnosAbsorcion) {
                 turnosAbsorcion--;
                 absorbidoPorEscamas = true;
                 m.hp = min(m.hpMax, m.hp + danoReal);
-                cout << "[ESCAMAS DEL REY] Lancelot absorbe tu golpe y lo convierte en " 
+                cout << "[ESCAMAS DEL REY] Lancelot absorbe tu golpe y lo convierte en "
                      << danoReal << " HP para el!" << endl;
                 if (turnosAbsorcion > 0)
                     cout << "[PELIGRO] Le quedan " << turnosAbsorcion << " ataque(s) mas de absorcion." << endl;
@@ -310,8 +299,9 @@ bool turnoJugador(Personaje &p, Monstruo &m, int &turnosAbsorcion) {
                     }
                 }
             }
+
             (void)absorbidoPorEscamas;
-            
+
             // -------------------------------------------------------
             // Generación de recurso por ataque básico (Ira / Enfoque)
             // -------------------------------------------------------
@@ -323,14 +313,13 @@ bool turnoJugador(Personaje &p, Monstruo &m, int &turnosAbsorcion) {
             p.ultimoTurnoAtaco = true;
 
             accionValida = true; // El ataque siempre consume el turno
-        } 
-
-        else if (opc == 2) { 
+        }
+        else if (opc == 2) {
             // -------------------------------------------------------
             // Trackeo inactivo
             // -------------------------------------------------------
-            p.ultimoTurnoAtaco = false; 
-            
+            p.ultimoTurnoAtaco = false;
+
             // -------------------------------------------------------
             // Bloqueo de habilidades por agotamiento
             // -------------------------------------------------------
@@ -339,15 +328,14 @@ bool turnoJugador(Personaje &p, Monstruo &m, int &turnosAbsorcion) {
                 // No consume turno: el menu se vuelve a mostrar
             } else {
                 // --- MENÚ DE HABILIDADES ACTIVAS Y ULTIMATES ---
-                
                 cout << "\n=== HABILIDADES ===" << endl;
                 vector<int> activas;
-                for (int id : p.habilidadesIds) 
+                for (int id : p.habilidadesIds)
                 {
                     auto hOpt = obtenerHabilidadPorId(id);
                     if (!hOpt) continue;
                     Habilidad h = *hOpt;
-                    if (h.tipo == "Activa" || h.tipo == "Ultimate") 
+                    if (h.tipo == "Activa" || h.tipo == "Ultimate")
                     {
                         activas.push_back(id);
                         if (h.tipo == "Ultimate")
@@ -370,13 +358,14 @@ bool turnoJugador(Personaje &p, Monstruo &m, int &turnosAbsorcion) {
                     else if (sel > 0 && sel <= (int)activas.size()) {
                         int idSeleccionado = activas[static_cast<size_t>(sel - 1)];
                         auto hOpt = obtenerHabilidadPorId(idSeleccionado);
-
                         if (hOpt) {
                             // Validamos si es una Ultimate (IDs 300-399) o Activa normal (IDs 100-199)
                             if (hOpt->tipo == "Ultimate") {
                                 if (puedeUsarUltimate(p)) {
-                                    // Las ultimates cuestan 50 de recurso por defecto o se ejecutan directo
-                                    if (gastarRecurso(p, 50)) {
+                                    // FIX: la ultimate consume TODO el recurso actual,
+                                    // no un costo fijo. Antes era gastarRecurso(p, 50).
+                                    int costoTotal = p.recursoActual;
+                                    if (gastarRecurso(p, costoTotal)) {
                                         ejecutarUltimate(p, m, idSeleccionado);
                                         accionValida = true;
                                     }
@@ -397,10 +386,9 @@ bool turnoJugador(Personaje &p, Monstruo &m, int &turnosAbsorcion) {
                     }
                 }
             } // Cierre del else de agotamiento
-        } 
+        }
         else if (opc == 3) { // MENÚ DE INVENTARIO
-            p.ultimoTurnoAtaco = false; 
-
+            p.ultimoTurnoAtaco = false;
             bool enInventario = true;
             bool usoObjeto = false;
 
@@ -413,7 +401,7 @@ bool turnoJugador(Personaje &p, Monstruo &m, int &turnosAbsorcion) {
                     cout << "1. Volver" << endl;
                 } else {
                     for (size_t j = 0; j < p.inventario.size(); ++j) {
-                        cout << j + 1 << ". " << p.inventario[j].nombre 
+                        cout << j + 1 << ". " << p.inventario[j].nombre
                              << " - " << p.inventario[j].descripcion << endl;
                     }
                     cout << p.inventario.size() + 1 << ". Volver" << endl;
@@ -424,46 +412,42 @@ bool turnoJugador(Personaje &p, Monstruo &m, int &turnosAbsorcion) {
                 if (!(cin >> selInv)) { cin.clear(); cin.ignore(1000, '\n'); continue; }
 
                 if (selInv == (int)p.inventario.size() + 1 || p.inventario.empty()) {
-                    enInventario = false; 
+                    enInventario = false;
                 }
                 else if (selInv > 0 && selInv <= (int)p.inventario.size()) {
-                   Consumible& obj = p.inventario[static_cast<size_t>(selInv - 1)];
+                    Consumible& obj = p.inventario[static_cast<size_t>(selInv - 1)];
 
                     if (obj.curacion > 0) {
                         p.hp = std::min(p.hpMax, p.hp + obj.curacion);
                         cout << "\n[-] Usaste " << obj.nombre << ". Recuperas " << obj.curacion << " HP." << endl;
                     }
-
                     if (obj.buffAtaque > 0) {
-                        p.fuerza += obj.buffAtaque; 
+                        p.fuerza += obj.buffAtaque;
                         cout << "[!] Fuerza aumentada a: " << p.fuerza << endl;
                     }
                     if (obj.buffDefensa > 0) {
-                        p.vitalidad += (obj.buffDefensa / 2); 
+                        p.vitalidad += (obj.buffDefensa / 2);
                         cout << "[!] Vitalidad aumentada a: " << p.vitalidad << endl;
                     }
                     if (obj.buffVelocidad > 0) {
-                        p.destreza += obj.buffVelocidad; 
+                        p.destreza += obj.buffVelocidad;
                         cout << "[!] Destreza aumentada a: " << p.destreza << endl;
                     }
 
                     p.inventario.erase(p.inventario.begin() + (selInv - 1));
-                    enInventario = false; 
+                    enInventario = false;
                     usoObjeto = true;
                     system("pause");
                 }
             }
-
             if (usoObjeto) accionValida = true;
         }
         else if (opc == 4) { // HUIR
-            p.ultimoTurnoAtaco = false; 
-
+            p.ultimoTurnoAtaco = false;
             int chanceHuida = 40 + ((p.velocidadBase - m.velocidad) * 3);
             chanceHuida = max(10, min(chanceHuida, 90));
 
             cout << "\n[HUIDA] Intentas escapar... (Probabilidad: " << chanceHuida << "%)" << endl;
-
             if (Rng::get().probabilidad(chanceHuida)) {
                 cout << "[HUIDA] ¡Lograste escapar!" << endl;
                 huidaExitosa = true;
@@ -472,7 +456,6 @@ bool turnoJugador(Personaje &p, Monstruo &m, int &turnosAbsorcion) {
                 cout << "[HUIDA] ¡Fallaste al escapar! " << m.nombre << " te bloquea el paso." << endl;
                 system("pause");
             }
-
             accionValida = true;
         }
     }
@@ -484,7 +467,7 @@ bool turnoJugador(Personaje &p, Monstruo &m, int &turnosAbsorcion) {
 // TURNO DEL ENEMIGO INTELIGENTE
 // =========================================================
 // Devuelve true si el monstruo huyo exitosamente.
-    bool turnoEnemigo(Personaje &p, Monstruo &m, bool faseValdrame2, bool fase3Lancelot) {
+bool turnoEnemigo(Personaje &p, Monstruo &m, bool faseValdrame2, bool fase3Lancelot) {
     bool usoHabilidad = false;
     bool monstruoHuyo = false;
 
@@ -498,7 +481,7 @@ bool turnoJugador(Personaje &p, Monstruo &m, int &turnosAbsorcion) {
             int indexHab = Rng::get().entre(0, static_cast<int>(m.habilidadesIds.size()) - 1);
             int idHab = m.habilidadesIds[static_cast<size_t>(indexHab)];
             bool huyo = ejecutarHabilidadMonstruo(m, p, idHab);
-            if (huyo) monstruoHuyo = true; 
+            if (huyo) monstruoHuyo = true;
             usoHabilidad = true;
         }
     }
@@ -524,9 +507,15 @@ bool turnoJugador(Personaje &p, Monstruo &m, int &turnosAbsorcion) {
                 double factorBase = (double)m.ataque / (p.defensaBase + p.artefactoEquipado.defensa);
                 int dEnemigo = static_cast<int>((static_cast<double>(p.hpMax) * 0.05) * factorBase);
                 dEnemigo = max(1, dEnemigo);
-
                 p.hp -= dEnemigo;
                 cout << "[ENE] " << m.nombre << " (Nvl " << m.nivelEnemigo << ") te golpea por " << dEnemigo << " de dano." << endl;
+
+                // -------------------------------------------------------
+                // FIX: Generacion de recurso al recibir dano (Ira del Guerrero).
+                // Antes esta llamada no existia y "recibioDano" nunca
+                // se pasaba en true en ningun lado del proyecto.
+                // -------------------------------------------------------
+                generarRecursoPorTurno(p, false, true);
 
                 if (p.tieneReliquia("Amuleto de Sangre") && m.hp > 0) {
                     if (Rng::get().probabilidad(20)) {
@@ -594,37 +583,33 @@ void resolverFinDeCombate(Personaje &p, Monstruo &m, int y, bool huidaExitosa, b
             oroGanado = static_cast<int>(static_cast<float>(oroGanado) * 1.25f);
             cout << "[RELIQUIA] Piedra del Alma: +25% oro!" << endl;
         }
-        cout << "\n--ENEMIGO DERROTADO--" << endl;
 
+        cout << "\n--ENEMIGO DERROTADO--" << endl;
         if (m.nombre == "ARZOBISPO VALDRAME") {
             cout << "El Arzobispo cae de rodillas, su poder corrupto desvanecido." << endl;
             cout << "\"Angra... me ha abandonado...\"" << endl;
             cout << "Entre sus ropajes encuentras un objeto brillante." << endl;
         }
-
         cout << "Ganaste " << oroGanado << " de Oro y " << m.expAlMorir << " puntos de Experiencia." << endl;
-        
         p.oro += oroGanado;
         p.exp += m.expAlMorir;
-        
+
         if (m.nombre == "ARZOBISPO VALDRAME") {
-                p.valdrameDerrotado = true;
-                gestionarLootValdrame(p); 
+            p.valdrameDerrotado = true;
+            gestionarLootValdrame(p);
         } else {
-                gestionarLoot(p, y, m.esRaro);
+            gestionarLoot(p, y, m.esRaro);
         }
 
         p.subirNivel();
         system("pause");
-
     } else if (m.hp <= 0 && y >= 241) {
         cout << "\n--LANCELOT HA CAIDO-- El cielo se aclara por primera vez en decadas." << endl;
         cout << "Entre las cenizas recoges la ESCAMA DEL REY DRAGON, simbolo eterno de tu victoria." << endl;
         system("pause");
-        
     } else if (p.hp <= 0) {
         p.reaparecer();
-    }  
+    }
 }
 
 // =========================================================
@@ -647,26 +632,27 @@ void resolverFinDeCombate(Personaje &p, Monstruo &m, int y, bool huidaExitosa, b
 // =========================================================
 void iniciarCombate(Personaje &p, int y) {
     int turnosAbsorcion = 0; // Controla la absorcion de la Fase 2 de Lancelot (ver turnoJugador)
-    
+
     // =========================================================
     // Combate Valdrame
     // =========================================================
     // Valdrame solo debe aparecer en la Iglesia (Y = 60) cuando el evento aún no fue completado.
     Monstruo errorMonstruo{"Error", 1, 1, 1, 1, 0, 1, 1, false};
     Monstruo m = (y == 60 && !p.valdrameDerrotado) ? generarValdrame() : generarEnemigo(y).value_or(errorMonstruo);
-    
+
     int hpInicial = m.hp; // Mantengo tu variable para el HUD y las fases
     bool fase2 = false;
     bool fase3 = false;
     bool huidaExitosa = false; // Variable necesaria para la opción de huir
     bool monstruoHuyo = false; // NUEVO 1.31: Para cuando el enemigo decide escapar
-    
+
     // NUEVO 1.31: Flag de fase del Arzobispo — empieza en false, se activa al 50% HP
     bool faseValdrame2 = false;
 
     string etiqueta = m.esJefe ? "[JEFE] " : m.esElite ? "[ELITE] " : m.esRaro ? "[RARO] " : "";
     string tituloCombate = string("COMBATE CONTRA: ") + etiqueta + m.nombre;
     mostrarCabecera(tituloCombate);
+
     // --- NUEVO: Reacción visual de Naturaleza del Monstruo ---
     if (m.naturaleza == "Feroz") {
         cout << "[!] ¡El enemigo ruge con furia! Sus ataques aumentan su ferocidad." << endl;
@@ -689,7 +675,6 @@ void iniciarCombate(Personaje &p, int y) {
     }
 
     while (p.hp > 0 && m.hp > 0) {
-        
         // -------------------------------------------------------
         // PARCHE 1: ULTIMATES NIVEL 20 - Tick de estados
         // -------------------------------------------------------
@@ -707,7 +692,7 @@ void iniciarCombate(Personaje &p, int y) {
             p.turnosAgotado--;
         }
         // -------------------------------------------------------
-        
+
         system("cls");
 
         // HUD de combate
@@ -726,7 +711,7 @@ void iniciarCombate(Personaje &p, int y) {
 
         // --- Turnos ---
         bool esTurnoJugador = (p.velocidadBase >= m.velocidad);
-        
+
         for (int i = 0; i < 2; i++) {
             if (m.hp <= 0 || p.hp <= 0 || huidaExitosa || monstruoHuyo) break;
 

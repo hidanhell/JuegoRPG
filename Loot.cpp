@@ -59,7 +59,7 @@ void gestionarLoot(Personaje &p, int y, bool raro)
         std::vector<Arma> posibles;
         for (const auto& arma : listaArmas) {
             if (arma.clase == p.clase && arma.zona == z) {
-                if ((raro && arma.rareza == "Raro") || (!raro && arma.rareza == "Comun")) {
+                if ((raro && arma.rareza == Rareza::Raro) || (!raro && arma.rareza == Rareza::Comun)) {
                     posibles.push_back(arma);
                 }
             }
@@ -115,7 +115,7 @@ void gestionarLoot(Personaje &p, int y, bool raro)
             std::vector<Artefacto> posibles;
             for (const auto& art : listaArtefactos) {
                 if (art.clase == p.clase && art.zona == z) {
-                    if ((raro && art.rareza == "Raro") || (!raro && art.rareza == "Comun")) {
+                    if ((raro && art.rareza == Rareza::Raro) || (!raro && art.rareza == Rareza::Comun)) {
                         posibles.push_back(art);
                     }
                 }
@@ -177,15 +177,15 @@ void gestionarLoot(Personaje &p, int y, bool raro)
             } else if (r.nombre == "Medallon del Guardian") {
                 p.defensaBase += 20;
                 cout << "[BONUS] Defensa +20." << endl;
-            } else if (r.nombre == "Garra del Berserker" && p.clase == "Guerrero") {
+            } else if (r.nombre == "Garra del Berserker" && p.clase == Clase::Guerrero) {
                 p.fuerza += 15;
                 p.ataqueBase += 15;
                 cout << "[BONUS] Fuerza +15." << endl;
-            } else if (r.nombre == "Ojo del Arcano" && p.clase == "Mago") {
+            } else if (r.nombre == "Ojo del Arcano" && p.clase == Clase::Mago) {
                 p.inteligencia += 15;
                 p.ataqueBase += 15;
                 cout << "[BONUS] Inteligencia +15." << endl;
-            } else if (r.nombre == "Pluma del Viento" && p.clase == "Cazador") {
+            } else if (r.nombre == "Pluma del Viento" && p.clase == Clase::Cazador) {
                 p.destreza += 15;
                 p.ataqueBase += 15;
                 cout << "[BONUS] Destreza +15." << endl;
@@ -215,7 +215,7 @@ void gestionarLootValdrame(Personaje& p) {
     // --- ARMA ELITE (siempre cae, de tu clase) ---
     std::vector<Arma> posibles;
     for (const auto& arma : listaArmas) {
-        if (arma.rareza == "Elite" && arma.clase == p.clase) {
+        if (arma.rareza == Rareza::Elite && arma.clase == p.clase) {
             posibles.push_back(arma);
         }
     }
@@ -227,7 +227,7 @@ void gestionarLootValdrame(Personaje& p) {
         cout << "\n========================================" << endl;
         cout << "  *** ARMA ELITE: " << nW.nombre << " ***" << endl;
         cout << "  Poder  : " << nW.poder << endl;
-        cout << "  Rareza : " << nW.rareza << endl;
+        cout << "  Rareza : " << rarezaToString(nW.rareza) << std::endl;
 
         // Mostrar efecto de estado
         if (nW.efectoId != 0) {

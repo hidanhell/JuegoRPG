@@ -5,18 +5,18 @@
 
 // Asigna el tipo de recurso y los valores iniciales según la clase del personaje
 void inicializarRecurso(Personaje &pj) {
-    // Suponiendo que pj.clase guarda el tipo ("Guerrero", "Mago", "Cazador")
-    if (pj.clase == "Guerrero") {
+    // Suponiendo que pj.clase guarda el tipo (Clase)
+    if (pj.clase == Clase::Guerrero) {
         pj.tipoRecurso = "Ira";
         pj.recursoMax = 100;
         pj.recursoActual = 0; // El guerrero empieza sin ira y la acumula en combate
     } 
-    else if (pj.clase == "Mago") {
+    else if (pj.clase == Clase::Mago) {
         pj.tipoRecurso = "Mana";
         pj.recursoMax = 100;
         pj.recursoActual = 100; // El mago empieza con todo el maná lleno
     } 
-    else if (pj.clase == "Cazador") {
+    else if (pj.clase == Clase::Cazador) {
         pj.tipoRecurso = "Enfoque";
         pj.recursoMax = 50;
         pj.recursoActual = 50; // El cazador empieza con el enfoque al máximo

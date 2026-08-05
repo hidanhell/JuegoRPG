@@ -8,6 +8,7 @@
 #include "Personajes.h"
 #include "Consumibles.h"
 #include "SaveGame.h"
+#include "CatalogoObjetos.h"
 
 // =========================================================
 // Implementaciones de consola (Infrastructure layer)
@@ -111,6 +112,11 @@ static std::string escapeJson(const std::string &s) {
     return out;
 }
 
+// Guarda el `Personaje` en un archivo en formato JSON sencillo.
+// Solo se serializan los campos necesarios para restaurar el estado jugable
+// (posY, identidad, stats base, ids de equipo, reliquias y efectos activos).
+// Nota: el parser en `cargarPartida` es manual y tolerante; migrar a una
+// librería JSON (nlohmann::json) es recomendable para mayor robustez.
 bool guardarPartida(const Personaje &p, int y, const std::string &ruta) {
     try {
         std::filesystem::path dir = std::filesystem::path(ruta).parent_path();
@@ -153,8 +159,28 @@ bool guardarPartida(const Personaje &p, int y, const std::string &ruta) {
         }
         f << "  ],\n";
 
-        // Equipo (arma id)
-        f << "  \"arma_id\": " << p.armaEquipada.id << "\n";
+        // Equipo (arma id + artefacto id)
+        f << "  \"arma_id\": " << p.armaEquipada.id << ",\n";
+        f << "  \"artefacto_id\": " << p.artefactoEquipado.id << ",\n";
+        f << "  \"clase\": \"" << claseToString(p.clase) << "\"," << "\n";
+
+        // Reliquias
+        f << "  \"reliquias\": [";
+        for (size_t i = 0; i < p.reliquias.size(); ++i) {
+            if (i) f << ", ";
+            f << "\"" << escapeJson(p.reliquias[i]) << "\"";
+        }
+        f << " ],\n";
+
+        // Efectos activos (id, duracion, intensidad)
+        f << "  \"efectos\": [\n";
+        for (size_t i = 0; i < p.efectos.size(); ++i) {
+            const auto &e = p.efectos[i];
+            f << "    {\"id\": " << e.id << ", \"duracion\": " << e.duracion << ", \"intensidad\": " << e.intensidad << "}";
+            if (i + 1 < p.efectos.size()) f << ",\n";
+            else f << "\n";
+        }
+        f << "  ]\n";
 
         f << "}\n";
         f.close();
@@ -171,6 +197,10 @@ static std::string trim(const std::string &s) {
     return s.substr(a, b - a);
 }
 
+// Carga un `Personaje` desde el archivo generado por `guardarPartida`.
+// El parser es básico: busca claves por nombres y extrae números/cadenas.
+// Tras leer ids de equipo, intenta rehidratar los objetos via catálogo.
+// Mantener el parser simple facilita compatibilidad con saves antiguos.
 bool cargarPartida(Personaje &p, int &y, const std::string &ruta) {
     std::ifstream f(ruta);
     if (!f.is_open()) return false;
@@ -255,10 +285,83 @@ bool cargarPartida(Personaje &p, int &y, const std::string &ruta) {
             }
         } else if (line.find("\"arma_id\"") != std::string::npos) {
             auto pos = line.find(':'); if (pos!=std::string::npos) p.armaEquipada.id = std::stoi(line.substr(pos+1));
+        } else if (line.find("\"artefacto_id\"") != std::string::npos) {
+            auto pos = line.find(':'); if (pos!=std::string::npos) p.artefactoEquipado.id = std::stoi(line.substr(pos+1));
+        } else if (line.find("\"clase\"") != std::string::npos) {
+            auto first = line.find('"');
+            auto second = line.find('"', first + 1);
+            auto third = line.find('"', second + 1);
+            auto fourth = line.find('"', third + 1);
+            if (third != std::string::npos && fourth != std::string::npos) {
+                std::string valor = line.substr(third + 1, fourth - third - 1);
+                auto clsOpt = claseFromString(valor);
+                if (clsOpt) p.clase = *clsOpt;
+            }
+        } else if (line.find("\"reliquias\"") != std::string::npos) {
+            // read array of strings until ]
+            std::string arr = line;
+            while (arr.find(']') == std::string::npos && std::getline(f, line)) arr += line;
+            // extract quoted strings
+            for (size_t i = 0; i < arr.size(); ++i) {
+                if (arr[i] == '"') {
+                    size_t j = i + 1; while (j < arr.size() && arr[j] != '"') ++j;
+                    if (j < arr.size()) {
+                        p.reliquias.push_back(arr.substr(i+1, j-(i+1)));
+                        i = j;
+                    }
+                }
+            }
+        } else if (line.find("\"efectos\"") != std::string::npos) {
+            // read objects until ]
+            std::string block; while (line.find(']') == std::string::npos && std::getline(f, line)) block += line;
+            // find occurrences of { ... }
+            size_t idx = 0;
+            while (true) {
+                auto objStart = block.find('{', idx);
+                if (objStart == std::string::npos) break;
+                auto objEnd = block.find('}', objStart);
+                if (objEnd == std::string::npos) break;
+                std::string obj = block.substr(objStart+1, objEnd-objStart-1);
+                int id = 0, dur = 0, inten = 0;
+                // simple number extraction inside object
+                for (size_t k = 0; k < obj.size(); ++k) {
+                    if (obj.compare(k, 3, "id\"") == 0 || obj.compare(k, 2, "id") == 0) {
+                        auto colon = obj.find(':', k);
+                        if (colon != std::string::npos) id = std::stoi(obj.substr(colon+1));
+                    }
+                    if (obj.find("duracion", k) == k) {
+                        auto colon = obj.find(':', k);
+                        if (colon != std::string::npos) dur = std::stoi(obj.substr(colon+1));
+                    }
+                    if (obj.find("intensidad", k) == k) {
+                        auto colon = obj.find(':', k);
+                        if (colon != std::string::npos) inten = std::stoi(obj.substr(colon+1));
+                    }
+                }
+                // build efecto from catalog if possible
+                auto efOpt = obtenerEfectoPorId(id);
+                Efecto ef;
+                if (efOpt) ef = *efOpt;
+                ef.id = id; ef.duracion = dur; ef.intensidad = inten;
+                p.efectos.push_back(ef);
+                idx = objEnd + 1;
+            }
         }
     }
 
     f.close();
+
+    // Reasignar equipamiento desde el catálogo si no se encontró el objeto en el estado actual.
+    // Esto permite cargar armas/artifacts equipados sin serializar todo el objeto.
+    {
+        auto armaOpt = obtenerArmaPorId(p.armaEquipada.id);
+        if (armaOpt) p.armaEquipada = *armaOpt;
+    }
+    {
+        auto arteOpt = obtenerArtefactoPorId(p.artefactoEquipado.id);
+        if (arteOpt) p.artefactoEquipado = *arteOpt;
+    }
+
     // After loading, recalc derived stats
     p.actualizarEstadisticas();
     if (p.hp > p.hpMax) p.hp = p.hpMax;

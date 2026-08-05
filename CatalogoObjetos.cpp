@@ -185,7 +185,7 @@ Arma armaLancelot(1003, "Espada del Dios del Caos",       350, "Legendaria", 204
 // de su filtrado manual queda pendiente para cuando revisemos ese
 // archivo a fondo.
 // =========================================================
-std::vector<Arma> obtenerArmasZona(int zona, const std::string& clase) {
+std::vector<Arma> obtenerArmasZona(int zona, Clase clase) {
     std::vector<Arma> resultado;
     for (const auto& a : listaArmas) {
         if (a.zona == zona && a.clase == clase) {
@@ -194,8 +194,20 @@ std::vector<Arma> obtenerArmasZona(int zona, const std::string& clase) {
     }
     return resultado;
 }
+std::optional<Arma> obtenerArmaPorId(int id) {
+    for (const auto& a : listaArmas) {
+        if (a.id == id) return a;
+    }
+    return std::nullopt;
+}
 
-std::vector<Artefacto> obtenerArtefactosZona(int zona, const std::string& clase) {
+std::optional<Artefacto> obtenerArtefactoPorId(int id) {
+    for (const auto& a : listaArtefactos) {
+        if (a.id == id) return a;
+    }
+    return std::nullopt;
+}
+std::vector<Artefacto> obtenerArtefactosZona(int zona, Clase clase) {
     std::vector<Artefacto> resultado;
     for (const auto& a : listaArtefactos) {
         if (a.zona == zona && a.clase == clase) {

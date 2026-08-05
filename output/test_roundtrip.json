@@ -1,0 +1,26 @@
+{
+  "save_version": 1,
+  "posY": 42,
+  "nombre": "Tester",
+  "nivel": 5,
+  "hp": 90,
+  "hpMax": 90,
+  "exp": 0,
+  "oro": 10,
+  "fuerza": 12,
+  "vitalidad": 8,
+  "destreza": 15,
+  "inteligencia": 8,
+  "ataqueBase": 24,
+  "velocidadBase": 28,
+  "habilidades": [],
+  "inventario": [
+  ],
+  "arma_id": 1,
+  "artefacto_id": 2,
+  "clase": "Guerrero",
+  "reliquias": ["Colmillo de Vampiro" ],
+  "efectos": [
+    {"id": 10, "duracion": 3, "intensidad": 2}
+  ]
+}
