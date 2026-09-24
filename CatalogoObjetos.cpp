@@ -1,4 +1,4 @@
-#include "catalogoObjetos.h"
+#include "CatalogoObjetos.h"
 
 // =========================================================
 // CATALOGO DE ARMAS POR ZONA

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">La Aldea en las Sombras</string>
+    <string name="cargando">Cargando el reino…</string>
+    <string name="hint_input">Escribe aquí (nombre, W/A/S/D, S/N)…</string>
+    <string name="enviar">Enviar</string>
+</resources>

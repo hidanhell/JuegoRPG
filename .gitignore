@@ -1,0 +1,21 @@
+# macOS
+.DS_Store
+
+# Claude Code: ajustes locales por máquina (no compartir)
+.claude/settings.local.json
+
+# Binario del build de consola (artefacto local, no fuente)
+/Reino
+
+# Objetos intermedios C/C++
+*.o
+*.obj
+*.a
+
+# Gradle / Android Studio (ver también android/.gitignore)
+.gradle/
+build/
+local.properties
+.idea/
+*.iml
+.cxx/

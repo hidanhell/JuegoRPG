@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Placeholder de icono: espada estilizada. Contenido dentro del circulo
+     seguro de 66dp centrado que exige el spec de adaptive icons. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path
+        android:pathData="M54,22 L65,50 L54,66 L43,50 Z M32,66 L76,66 L76,75 L32,75 Z M47,75 L61,75 L61,90 L47,90 Z M54,90 L61,97 L54,104 L47,97 Z"
+        android:fillColor="#E0B15C" />
+</vector>

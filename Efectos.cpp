@@ -1,4 +1,4 @@
-#include "efectos.h"
+#include "Efectos.h"
 #include "Rng.h"
 #include <iostream>
 #include <vector>

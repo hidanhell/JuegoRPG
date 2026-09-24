@@ -1,9 +1,9 @@
-#include "loot.h"
+#include "Loot.h"
 #include "Armas.h"
 #include "Artefactos.h"
 #include "Reliquias.h"
 #include "Utilidades.h"
-#include "catalogoObjetos.h"
+#include "CatalogoObjetos.h"
 #include "Habilidades.h"
 #include <iostream>
 #include "Rng.h"

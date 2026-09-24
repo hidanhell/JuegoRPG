@@ -1,12 +1,12 @@
-#include "tienda.h"
-#include "utilidades.h"
+#include "Tienda.h"
+#include "Utilidades.h"
 #include "Armas.h"
 #include "Artefactos.h"
 #include "Reliquias.h"
 #include <iostream>
 #include <algorithm>
 #include <vector>
-#include "catalogoObjetos.h"
+#include "CatalogoObjetos.h"
 #include "Consumibles.h"
 #include "Rng.h"
 

@@ -1,4 +1,4 @@
-#include "personajes.h"
+#include "Personajes.h"
 #include <iostream>
 #include <algorithm>
 #include <limits>

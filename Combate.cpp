@@ -1,6 +1,6 @@
-#include "combate.h"
+#include "Combate.h"
 #include "Utilidades.h"
-#include "loot.h"
+#include "Loot.h"
 #include "HabilidadesMonstruo.h" 
 #include <iostream>
 #include <algorithm>
@@ -9,7 +9,7 @@
 #include "Personajes.h"
 #include "Monstruos.h"
 #include "Efectos.h"
-#include "catalogoObjetos.h"
+#include "CatalogoObjetos.h"
 #include "Consumibles.h"
 #include "Habilidades.h"
 #include "Rng.h"

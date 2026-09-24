@@ -1,0 +1,70 @@
+plugins {
+    id 'com.android.application'
+    id 'org.jetbrains.kotlin.android'
+}
+
+android {
+    namespace 'com.hidanhell.juegorphg'
+    compileSdk 34
+    ndkVersion '25.2.9519653'   // NDK r25c (LTS). Instalable via SDK Manager.
+
+    defaultConfig {
+        applicationId 'com.hidanhell.juegorphg'
+        minSdk 24          // API 24 (Android 7.0): base solida para NDK moderno
+        targetSdk 34
+        versionCode 1
+        versionName '1.32'
+
+        externalNativeBuild {
+            cmake {
+                // -DANDROID_BUILD lo pone CMakeLists.txt via compile_definitions.
+                // c++_static (no c++_shared): al tener una sola libreria nativa
+                // (juegorphg), esto evita empaquetar el libc++_shared.so que trae
+                // el NDK r25c y que no cumple la alineacion a 16 KB exigida desde
+                // nov-2025. Ver nota de alineacion en CMakeLists.txt.
+                arguments '-DANDROID_STL=c++_static'
+                cppFlags '-std=c++17'
+            }
+        }
+
+        ndk {
+            // arm64-v8a y x86_64 son prioritarios (dispositivos reales + emulador).
+            // Anadir armeabi-v7a / x86 si se necesita cobertura de gama baja.
+            abiFilters 'arm64-v8a', 'x86_64'
+        }
+    }
+
+    buildTypes {
+        debug {
+            debuggable true
+            jniDebuggable true
+        }
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'),
+                    'proguard-rules.pro'
+        }
+    }
+
+    externalNativeBuild {
+        cmake {
+            path 'src/main/cpp/CMakeLists.txt'
+            version '3.22.1'
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    kotlinOptions {
+        jvmTarget = '17'
+    }
+}
+
+dependencies {
+    implementation 'androidx.core:core-ktx:1.13.1'
+    implementation 'androidx.appcompat:appcompat:1.7.0'
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1'
+}

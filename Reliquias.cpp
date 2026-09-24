@@ -1,4 +1,4 @@
-#include "reliquias.h"
+#include "Reliquias.h"
 #include "Enums.h"
 #include <iostream>
 

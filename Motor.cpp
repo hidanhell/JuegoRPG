@@ -1,13 +1,13 @@
 // =========================================================
 // BLOQUE M: MOTOR PRINCIPAL DEL JUEGO (v1.4)
 // =========================================================
-#include "utilidades.h"
+#include "Utilidades.h"
 #include "IO.h"
 #include "SaveGame.h"
-#include "personajes.h"
-#include "combate.h"       
-#include "loot.h"
-#include "tienda.h"
+#include "Personajes.h"
+#include "Combate.h"       
+#include "Loot.h"
+#include "Tienda.h"
 #include "Rng.h"
 #include <iostream>
 #include <map>
@@ -15,7 +15,9 @@
 #include <filesystem>
 #include <chrono>
 #include <iomanip>
-#include "catalogoObjetos.h"
+#include <sstream>
+#include <ctime>
+#include "CatalogoObjetos.h"
 #include "Armas.h"
 #include "Artefactos.h" 
 #include "Reliquias.h"
@@ -26,7 +28,18 @@
 #include "Zonas.h"         
 using namespace std;
 
+// =========================================================
+// Punto de entrada.
+//   - Build de consola (PC): main() estandar.
+//   - Build de Android (ANDROID_BUILD): se expone iniciarJuego(),
+//     llamado desde el puente JNI en un hilo de background.
+// El cuerpo del bucle es identico en ambos casos.
+// =========================================================
+#ifdef ANDROID_BUILD
+void iniciarJuego() {
+#else
 int main() {
+#endif
     string nombreUser;
     int tipoClase;
 
@@ -125,7 +138,13 @@ int main() {
 
         cout << "CONTROLES: (W-A-S-D) Mover | (P) Status | (G) Guardar/Cargar | (Q) Salir" << endl;
         
-        char input; cin >> input; input = aMinuscula(input);
+        char input; cin >> input;
+        // cin.eof() (a diferencia de un simple fail por tecla invalida) solo se da
+        // cuando el stream de entrada se cerro (pipe de Android cerrado por
+        // nativeDetener, o EOF real en consola). Sin este corte, el hilo del motor
+        // gira en un loop de CPU al 100% para siempre en vez de terminar.
+        if (cin.eof()) break;
+        input = aMinuscula(input);
 
         if (input == 'w') {
             if (p.posY < 241) {
@@ -254,13 +273,13 @@ int main() {
                 cout << "Nombre de archivo (sin extension): ";
                 string nombreArchivo = IO::entrada().leerLinea();
                 if (nombreArchivo.empty()) nombreArchivo = "slot1";
-                string ruta = string("savegames/") + nombreArchivo + ".json";
+                string ruta = IO::directorioGuardado() + "/" + nombreArchivo + ".json";
                 if (guardarPartida(p, p.posY, ruta)) cout << "[OK] Partida guardada en: " << ruta << endl;
                 else cout << "[ERROR] No se pudo guardar la partida." << endl;
                 esperarTecla();
             } else if (opc == 2) {
                 namespace fs = std::filesystem;
-                string savesDir = "savegames";
+                string savesDir = IO::directorioGuardado();
                 struct SaveInfo { string name; string mtime; uintmax_t size; };
                 vector<SaveInfo> saves;
                 if (fs::exists(savesDir) && fs::is_directory(savesDir)) {
@@ -273,7 +292,8 @@ int main() {
                                 string mtimeStr = "?";
                                 try {
                                     auto ftime = fs::last_write_time(pth);
-                                    auto sctp = std::chrono::system_clock::now() + (ftime - fs::file_time_type::clock::now());
+                                    auto sctp = std::chrono::time_point_cast<std::chrono::system_clock::duration>(
+                                        ftime - fs::file_time_type::clock::now() + std::chrono::system_clock::now());
                                     std::time_t cftime = std::chrono::system_clock::to_time_t(sctp);
                                     std::tm tm = *std::localtime(&cftime);
                                     std::ostringstream oss;
@@ -388,5 +408,7 @@ int main() {
             }
         }
     }
+#ifndef ANDROID_BUILD
     return 0;
+#endif
 }

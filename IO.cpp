@@ -79,17 +79,41 @@ public:
 // Service locator
 // =========================================================
 
-static ConsolaRenderizador defaultRender;
-static ConsolaEntrada      defaultEntrada;
+// Static locals, no globales de scope de archivo: si algun otro .cpp llegara
+// a llamar IO::render()/entrada() desde el constructor de un global suyo, el
+// orden de inicializacion entre distintos .cpp no esta definido en C++ (ver
+// el mismo problema resuelto en Rng.cpp). Los static locales se inicializan
+// de forma perezosa en el primer uso real.
+static ConsolaRenderizador& defaultRenderInstancia() {
+    static ConsolaRenderizador instancia;
+    return instancia;
+}
+static ConsolaEntrada& defaultEntradaInstancia() {
+    static ConsolaEntrada instancia;
+    return instancia;
+}
 
-static IRenderizador* renderActual  = &defaultRender;
-static IEntrada*      entradaActual = &defaultEntrada;
+static IRenderizador*& renderActualRef() {
+    static IRenderizador* renderActual = &defaultRenderInstancia();
+    return renderActual;
+}
+static IEntrada*& entradaActualRef() {
+    static IEntrada* entradaActual = &defaultEntradaInstancia();
+    return entradaActual;
+}
 
-IRenderizador& IO::render()  { return *renderActual; }
-IEntrada&      IO::entrada() { return *entradaActual; }
+IRenderizador& IO::render()  { return *renderActualRef(); }
+IEntrada&      IO::entrada() { return *entradaActualRef(); }
 
-void IO::establecerRender(IRenderizador* i)  { renderActual  = i ? i : &defaultRender; }
-void IO::establecerEntrada(IEntrada* i)      { entradaActual = i ? i : &defaultEntrada; }
+void IO::establecerRender(IRenderizador* i)  { renderActualRef()  = i ? i : &defaultRenderInstancia(); }
+void IO::establecerEntrada(IEntrada* i)      { entradaActualRef() = i ? i : &defaultEntradaInstancia(); }
+
+static std::string dirGuardadoActual = "savegames";
+
+std::string IO::directorioGuardado() { return dirGuardadoActual; }
+void IO::establecerDirectorioGuardado(const std::string& dir) {
+    dirGuardadoActual = dir.empty() ? "savegames" : dir;
+}
 
 // ----------------------------
 // Guardado / Carga de partidas

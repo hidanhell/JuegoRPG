@@ -1,4 +1,4 @@
 #pragma once
-#include "personajes.h"
+#include "Personajes.h"
 
 void entrarTienda(Personaje &p);

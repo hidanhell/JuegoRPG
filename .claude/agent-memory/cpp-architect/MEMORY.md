@@ -1,0 +1,2 @@
+- [Project Overview](project_juego_rpg.md) — "La Aldea en las Sombras" v1.31, C++17 console text RPG; runs on Mac/Windows
+- [I/O Architecture](project_io_architecture.md) — blocking synchronous console loop; cin/cout everywhere inline; the central porting challenge

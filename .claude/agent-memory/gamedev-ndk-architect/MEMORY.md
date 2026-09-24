@@ -1,0 +1,2 @@
+- [Proyecto JuegoRPG](project_juegorpg.md) — RPG de texto C++17 por consola, capa SOLID parcial, port Android en curso
+- [Port Android arquitectura](android_port_arquitectura.md) — NDK, transporte por pipes stdin/stdout, UI de texto, threading JNI
