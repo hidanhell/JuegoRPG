@@ -28,8 +28,6 @@ inline void aplicarDanoSeguro(Monstruo &m, int danoReal) {
 // FUNCIÓN GLOBAL DE ACCESO
 // ==========================
 std::optional<Habilidad> obtenerHabilidadPorId(int id) {
-    // NOTA TUYA: lo dejamos con for para que siga simple.
-    // A futuro, si tienes +300 habilidades, cambialo a unordered_map para que sea mas rapido.
     for (auto &h : listaHabilidadesGlobal)
         if (h.id == id) return h;
     return std::nullopt;
@@ -207,7 +205,7 @@ void aplicarSubclase(Personaje &pj, int idHabilidad) {
 }
 
 // ============================================
-// ULTIMATES NIVEL 20 (una sola vez por partida)
+// ULTIMATES NIVEL 20 (una sola vez por encuentro)
 // ============================================
 int obtenerUltimateIdDePersonaje(const Personaje &pj) {
     for (int id : pj.habilidadesIds) {
@@ -216,13 +214,9 @@ int obtenerUltimateIdDePersonaje(const Personaje &pj) {
     return -1;
 }
 
-// FIX: ahora tambien exige que quede algo de recurso disponible.
-// La verificacion de "cuanto" cuesta cada ultimate especificamente
-// vive en Combate.cpp (donde se llama gastarRecurso), aqui solo
-// filtramos el caso obvio de recurso en 0.
 bool puedeUsarUltimate(const Personaje &pj) {
     if (!pj.tieneUltimate20) return false;
-    if (pj.ultimateUsada)    return false;
+    if (pj.ultimateUsada)    return false; // Bloquea si ya se uso en este encuentro
     if (obtenerUltimateIdDePersonaje(pj) == -1) return false;
     if (pj.recursoActual <= 0) return false;
     return true;
@@ -350,13 +344,11 @@ void ejecutarUltimate(Personaje &pj, Monstruo &m, int idHabilidad) {
 
         case 331: // Flecha del Juicio Final (Ultimate de Puntería)
         {
-            // FIX: se aplica el requisito que ya existia en el dato/comentario
-            // (pj.ultimoTurnoAtaco) pero que nunca se revisaba en el codigo.
             if (!pj.ultimoTurnoAtaco) {
                 std::cout << "\n[ULTIMATE] Necesitas haber atacado con tu ataque basico el turno "
-                             "inmediatamente anterior para tensar tu arco al maximo. "
-                             "No se cumple la condicion; la ultimate no se activa.\n";
-                return; // No se marca ultimateUsada: no se gasto nada
+                           "inmediatamente anterior para tensar tu arco al maximo. "
+                           "No se cumple la condicion; la ultimate no se activa.\n";
+                return; // No se marca como usada: no se gasta recurso si falla el requisito
             }
 
             std::cout << "\n[ULTIMATE] ¡Tensas tu arco al límite absoluto concentrando toda tu puntería en " << m.nombre << "!\n";
@@ -410,10 +402,10 @@ void ejecutarUltimate(Personaje &pj, Monstruo &m, int idHabilidad) {
 
         default:
             std::cout << "[ULTIMATE] " << hab.nombre << " no tiene logica definida aun.\n";
-            return; // no se marca como usada si no existia logica
+            return; 
     }
 
-    // Se gasta el unico uso por partida, sin importar cual ultimate fue.
+    // Se marca como usada solo para este encuentro (recuerda poner pj.ultimateUsada = false al iniciar un nuevo combate)
     pj.ultimateUsada = true;
 }
 

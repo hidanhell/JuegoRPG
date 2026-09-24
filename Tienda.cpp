@@ -13,7 +13,7 @@
 using namespace std;
 
 // =========================================================
-// BLOQUE M3: SISTEMA DE TIENDA (v2.1)
+// BLOQUE M3: SISTEMA DE TIENDA (v2.2 - Venta de Reliquias)
 // =========================================================
 
 void entrarTienda(Personaje &p) {
@@ -80,7 +80,6 @@ void entrarTienda(Personaje &p) {
                 for (auto &a : listaArmas) if (a.clase == p.clase) poolArmas.push_back(a);
                 for (auto &a : listaArtefactos) if (a.clase == p.clase) poolArt.push_back(a);
 
-                // Centralizamos la aleatoriedad de la tienda en el RNG único del proyecto.
                 std::vector<Arma> poolArmasSeleccionadas;
                 std::vector<Artefacto> poolArtSeleccionadas;
 
@@ -140,10 +139,9 @@ void entrarTienda(Personaje &p) {
                 cout << "----------------------------------------" << endl;
 
                 if (p.reliquias.size() >= 2) {
-                    cout << "[!] Ya cargas 2 reliquias. No puedes llevar mas." << endl;
+                    cout << "[!] Ya cargas 2 reliquias. Vende una si quieres comprar otra." << endl;
                 } else {
-                    // Mostrar solo reliquias que el jugador no tiene aún
-                    vector<pair<int, Reliquia>> disponibles; // par: precio, reliquia
+                    vector<pair<int, Reliquia>> disponibles; 
                     int idx = 1;
 
                     for (const auto& rel : listaReliquias) {
@@ -152,7 +150,6 @@ void entrarTienda(Personaje &p) {
                             if (nombre == rel.nombre) { yaTiene = true; break; }
                         }
                         if (!yaTiene) {
-                            // Precio según rareza
                             int precio = 0;
                             if (rel.rareza == Rareza::Comun) precio = 300;
                             else if (rel.rareza == Rareza::Raro) precio = 700;
@@ -219,29 +216,102 @@ void entrarTienda(Personaje &p) {
             }
         }
         else if (opcion == 2) { // --- VENDER ---
-            cout << "\n--- OBJETOS EN TU PODER ---" << endl;
-            int idx = 1;
+            cout << "\n--- QUE DESEAS VENDER? ---" << endl;
+            cout << "1. Consumibles" << endl;
+            cout << "2. Reliquias Equipadas" << endl;
+            cout << "0. Cancelar" << endl;
 
-            if (p.inventario.empty()) {
-                cout << "No tienes consumibles para vender." << endl;
-            } else {
-                for (size_t i = 0; i < p.inventario.size(); i++) {
-                    int pVenta = static_cast<int>(static_cast<float>(p.inventario[i].precio) * 0.4f);
-                    cout << idx << ". " << p.inventario[i].nombre << " (+" << pVenta << " oro)" << endl;
-                    idx++;
+            int tipoVenta; cin >> tipoVenta;
+
+            if (tipoVenta == 1) { // --- VENDER CONSUMIBLES ---
+                cout << "\n--- CONSUMIBLES EN TU PODER ---" << endl;
+                int idx = 1;
+
+                if (p.inventario.empty()) {
+                    cout << "No tienes consumibles para vender." << endl;
+                } else {
+                    for (size_t i = 0; i < p.inventario.size(); i++) {
+                        int pVenta = static_cast<int>(static_cast<float>(p.inventario[i].precio) * 0.4f);
+                        cout << idx << ". " << p.inventario[i].nombre << " (+" << pVenta << " oro)" << endl;
+                        idx++;
+                    }
+                    cout << idx << ". Cancelar" << endl;
+
+                    int venta; cin >> venta;
+                    if (venta > 0 && venta < idx) {
+                        int iReal = venta - 1;
+                        int pVenta = static_cast<int>(
+                            static_cast<float>(p.inventario[static_cast<size_t>(iReal)].precio) * 0.4f
+                        );
+                        p.oro += pVenta;
+                        cout << "Vendiste " << p.inventario[static_cast<size_t>(iReal)].nombre 
+                             << " por " << pVenta << " oro." << endl;
+                        p.inventario.erase(p.inventario.begin() + iReal);
+                    }
                 }
-                cout << idx << ". Cancelar" << endl;
+            }
+            else if (tipoVenta == 2) { // --- VENDER RELIQUIAS ---
+                cout << "\n--- TUS RELIQUIAS EQUIPADAS ---" << endl;
+                
+                if (p.reliquias.empty()) {
+                    cout << "No tienes reliquias para vender." << endl;
+                } else {
+                    for (size_t i = 0; i < p.reliquias.size(); i++) {
+                        // Buscar la reliquia en el catálogo para mostrar su precio de venta
+                        int precioVenta = 0;
+                        for (const auto& rel : listaReliquias) {
+                            if (rel.nombre == p.reliquias[i]) {
+                                if (rel.rareza == Rareza::Comun) precioVenta = 120; // 40% de 300
+                                else if (rel.rareza == Rareza::Raro) precioVenta = 280; // 40% de 700
+                                else if (rel.rareza == Rareza::Epico) precioVenta = 600; // 40% de 1500
+                                break;
+                            }
+                        }
+                        cout << i + 1 << ". " << p.reliquias[i] << " (+" << precioVenta << " oro)" << endl;
+                    }
+                    cout << "0. Cancelar" << endl;
 
-                int venta; cin >> venta;
-                if (venta > 0 && venta < idx) {
-                    int iReal = venta - 1;
-                    int pVenta = static_cast<int>(
-                        static_cast<float>(p.inventario[static_cast<size_t>(iReal)].precio) * 0.4f
-                    );
-                    p.oro += pVenta;
-                    cout << "Vendiste " << p.inventario[static_cast<size_t>(iReal)].nombre 
-                         << " por " << pVenta << " oro." << endl;
-                    p.inventario.erase(p.inventario.begin() + iReal);
+                    int relVenta; cin >> relVenta;
+                    if (relVenta > 0 && relVenta <= (int)p.reliquias.size()) {
+                        int rReal = relVenta - 1;
+                        string nombreReliquia = p.reliquias[static_cast<size_t>(rReal)];
+                        
+                        int pVentaReliquia = 0;
+                        for (const auto& rel : listaReliquias) {
+                            if (rel.nombre == nombreReliquia) {
+                                if (rel.rareza == Rareza::Comun) pVentaReliquia = 120;
+                                else if (rel.rareza == Rareza::Raro) pVentaReliquia = 280;
+                                else if (rel.rareza == Rareza::Epico) pVentaReliquia = 600;
+                                break;
+                            }
+                        }
+
+                        // --- REVERTIR ESTADISTICAS ---
+                        // IMPORTANTE: Asegurate de que estos valores coincidan con los que suma tu archivo loot.cpp o la compra
+                        if (nombreReliquia == "Anillo del Asesino") {
+                            p.bonusCritico -= 5;
+                        } else if (nombreReliquia == "Medallon del Guardian") {
+                            p.defensaBase -= 10;
+                        } else if (nombreReliquia == "Garra del Berserker" && p.clase == Clase::Guerrero) {
+                            p.fuerza -= 8;
+                            p.ataqueBase -= 8;
+                        } else if (nombreReliquia == "Ojo del Arcano" && p.clase == Clase::Mago) {
+                            p.inteligencia -= 8;
+                            p.ataqueBase -= 8;
+                        } else if (nombreReliquia == "Pluma del Viento" && p.clase == Clase::Cazador) {
+                            p.destreza -= 8;
+                            p.ataqueBase -= 8;
+                        } else if (nombreReliquia == "Botas del Relampago") {
+                            p.velocidadBase -= 10;
+                        }
+                        // Las reliquias de efectos pasivos en combate (Calavera, Amuleto, Piedra Alma) no restan stats base
+
+                        p.oro += pVentaReliquia;
+                        p.reliquias.erase(p.reliquias.begin() + rReal);
+                        
+                        cout << "\nHas vendido la reliquia " << nombreReliquia << " por " << pVentaReliquia << " oro." << endl;
+                        cout << "[!] Se han revertido sus efectos y has recuperado el espacio." << endl;
+                    }
                 }
             }
         }

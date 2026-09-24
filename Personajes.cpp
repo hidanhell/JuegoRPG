@@ -251,7 +251,7 @@ if (nivel >= 15 && clase == Clase::Guerrero && !tieneSubclase15) {
 
         //-----Habilidades Ultimate Nivel 20 (Guerrero)
         // NUEVO 1.32: El jugador no elige, la ultimate se asigna segun la subclase de nivel 15.
-        // Paladin -> Ira del Cielo (ID 301) | Berserker -> Ultima Bestia (ID 302)
+        // Paladin -> Ira del Cielo (ID 311) | Berserker -> Ultima Bestia (ID 312)
         // tieneUltimate20 evita que se repita si subes mas de un nivel de golpe.
         if (nivel >= 20 && clase == Clase::Guerrero && !tieneUltimate20) {
             cout << "\n========================================" << endl;
@@ -270,7 +270,7 @@ if (nivel >= 15 && clase == Clase::Guerrero && !tieneSubclase15) {
                 // Paralisis garantizada 2 turnos + autocura 15% hpMax
                 cout << "Como PALADIN, desbloqueas IRA DEL CIELO:\n";
                 cout << "Golpe sagrado devastador. Paralisis garantizada 2 turnos. Te curas 15% HP.\n";
-                habilidadesIds.push_back(301);
+                habilidadesIds.push_back(311);
             } else {
                 // ULTIMA BESTIA: ataqueBase*1.8 por golpe, 6-9 golpes aleatorios
                 // Si mata -> recuperas el 10% HP de autodano
@@ -278,7 +278,7 @@ if (nivel >= 15 && clase == Clase::Guerrero && !tieneSubclase15) {
                 cout << "Como BERSERKER, desbloqueas ULTIMA BESTIA:\n";
                 cout << "Frenesi de 6 a 9 golpes devastadores.\n";
                 cout << "Si mata: recuperas 10% HP. Si no mata: pierdes 10% HP y rompes la armadura enemiga -40% por 2 turnos.\n";
-                habilidadesIds.push_back(302);
+                habilidadesIds.push_back(312);
             }
 
             // CORRECCIÓN: obtenerHabilidadPorId retorna optional, usamos value_or
@@ -375,7 +375,7 @@ if (nivel >= 15 && clase == Clase::Guerrero && !tieneSubclase15) {
         }
 
         //-----Habilidades Ultimate Nivel 20 (Mago)
-        // NUEVO 1.32: Mago Fuego -> Colapso Solar (ID 311) | Mago Hielo -> Absoluto Cero (ID 312)
+        // NUEVO 1.32: Mago Fuego -> Colapso Solar (ID 321) | Mago Hielo -> Absoluto Cero (ID 322)
         if (nivel >= 20 && clase == Clase::Mago && !tieneUltimate20) {
             cout << "\n========================================" << endl;
             cout << "  NIVEL 20 — EL PODER DEFINITIVO" << endl;
@@ -394,14 +394,14 @@ if (nivel >= 15 && clase == Clase::Guerrero && !tieneSubclase15) {
                 cout << "Como MAGO DE FUEGO, desbloqueas COLAPSO SOLAR:\n";
                 cout << "Una estrella en miniatura. Quemadura garantizada 3 turnos.\n";
                 cout << "ADVERTENCIA: Te deja agotado 1 turno. No podras usar habilidades ese turno.\n";
-                habilidadesIds.push_back(311);
+                habilidadesIds.push_back(321);
             } else {
                 // ABSOLUTO CERO: Dano = inteligencia*2.0 (x2 si enemigo ya congelado)
                 // Congelacion garantizada 3 turnos + reduce ATQ enemigo -30% mientras dure
                 cout << "Como MAGO DE HIELO, desbloqueas ABSOLUTO CERO:\n";
                 cout << "El tiempo se detiene. Congelacion garantizada 3 turnos y -30% ATQ enemigo.\n";
                 cout << "COMBO: Si el enemigo ya esta congelado, el dano se DUPLICA.\n";
-                habilidadesIds.push_back(312);
+                habilidadesIds.push_back(322);
             }
 
             // CORRECCIÓN: obtenerHabilidadPorId retorna optional, usamos value_or
@@ -497,7 +497,7 @@ if (nivel >= 15 && clase == Clase::Guerrero && !tieneSubclase15) {
         }
 
         //-----Habilidades Ultimate Nivel 20 (Cazador)
-        // NUEVO 1.32: Punteria -> Flecha del Juicio Final (ID 321) | Bestias -> Pacto de Sangre (ID 322)
+        // NUEVO 1.32: Punteria -> Flecha del Juicio Final (ID 331) | Bestias -> Pacto de Sangre (ID 332)
         if (nivel >= 20 && clase == Clase::Cazador && !tieneUltimate20) {
             cout << "\n========================================" << endl;
             cout << "  NIVEL 20 — EL PODER DEFINITIVO" << endl;
@@ -518,7 +518,7 @@ if (nivel >= 15 && clase == Clase::Guerrero && !tieneSubclase15) {
                 cout << "El disparo definitivo. Ignora toda la defensa del enemigo.\n";
                 cout << "REQUISITO: Debes haber atacado el turno anterior para cargar el disparo.\n";
                 cout << "50% de chance de aplicar veneno 3 turnos.\n";
-                habilidadesIds.push_back(321);
+                habilidadesIds.push_back(331);
             } else {
                 // PACTO DE SANGRE: Dano = destreza*1.5 (tu) + destreza*1.0 (companero)
                 // Sangrado garantizado (tu ataque) + Veneno garantizado (companero)
@@ -526,7 +526,7 @@ if (nivel >= 15 && clase == Clase::Guerrero && !tieneSubclase15) {
                 cout << "Como maestro de BESTIAS, desbloqueas PACTO DE SANGRE:\n";
                 cout << "Tu y tu companero atacan como uno. Dano doble.\n";
                 cout << "Sangrado + Veneno garantizados. Tu companero absorbe el proximo golpe que recibirias.\n";
-                habilidadesIds.push_back(322);
+                habilidadesIds.push_back(332);
             }
 
             // CORRECCIÓN: obtenerHabilidadPorId retorna optional, usamos value_or

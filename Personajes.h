@@ -9,6 +9,24 @@
 
 struct Monstruo; // Declaracion anticipada para evitar include circular
 
+// =========================================================
+// NUEVO: BuffActivo — registro de un bono temporal de stats
+// (proveniente de un elixir/consumible) que sigue activo en el
+// jugador. Existe para que los elixires DEJEN de ser permanentes:
+// antes se sumaba el bono directo a ataqueBase/defensaBase/
+// velocidadBase y nunca se revertia. Ahora, ademas de sumarse al
+// usar el consumible, se guarda aqui con su duracion en turnos;
+// Combate.cpp::procesarBuffsJugador() la descuenta cada turno y,
+// al llegar a 0, resta exactamente lo que este buff habia sumado.
+// =========================================================
+struct BuffActivo {
+    std::string nombre;      // Nombre del elixir/objeto que origino el buff (para el mensaje al expirar)
+    int bonusAtaque = 0;
+    int bonusDefensa = 0;
+    int bonusVelocidad = 0;
+    int duracion = 0;        // Turnos restantes
+};
+
 struct Personaje {
     // --- Identidad y Lore ---
     std::string nombre;
@@ -50,6 +68,9 @@ struct Personaje {
     bool usadaPluma;
     std::vector<Efecto> efectos; // Veneno, Quemadura, Sangrado, etc.
 
+    // --- Buffs temporales activos (NUEVO, ver struct BuffActivo arriba) ---
+    std::vector<BuffActivo> buffsActivos;
+
     // --- Registro de habilidades desbloqueadas ---
     std::vector<int> habilidadesIds; // IDs de habilidades que el personaje ha aprendido
 
@@ -85,4 +106,3 @@ bool puedeUsarUltimate(const Personaje &pj);
 // separado de ejecutarHabilidad(), porque las reglas son distintas
 // (un solo uso por partida, consumo total de recurso, etc.)
 void ejecutarUltimate(Personaje &pj, Monstruo &m, int idHabilidad);
-

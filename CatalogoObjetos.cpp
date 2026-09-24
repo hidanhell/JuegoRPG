@@ -9,7 +9,7 @@
 std::vector<Arma> listaArmas = {
 
     // --- ELITE VALDRAME | Zona 1 (Loot exclusivo del Arzobispo) ---
-    // EfectoId 4 = Paralisis | HabilidadId 301 = Grito del Caido (se activa al criticar)
+    // EfectoId 4 = Paralisis | HabilidadId 401 = Grito del Caido (se activa al criticar)
     {82, "Filo del Sepulcro",       80, "Elite", 4, "Guerrero", 1, 0, 301},
     {83, "Baculo de las Almas",     80, "Elite", 4, "Mago",     1, 0, 301},
     {84, "Arco del Ultimo Aliento", 80, "Elite", 4, "Cazador",  1, 0, 301},

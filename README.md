@@ -68,21 +68,11 @@ Cada clase tiene su propio árbol de habilidades con desbloqueos en nivel 5, 10 
 
 ### Requisitos
 - Compilador C++17 o superior (g++ recomendado)
-- Windows (usa `system("cls")` y `system("pause")`)
+- En Windows, usar la tarea `shell: build` de VS Code o un terminal con g++ disponible
 
 ### Compilar con g++
 ```bash
-g++ -std=c++17 -o Reino *.cpp
-
-## 🛠️ Compilar y ejecutar
-
-### Requisitos
-- Compilador C++17 o superior (g++ recomendado)
-- Windows (usa `system("cls")` y `system("pause")`)
-
-### Compilar con g++
-```bash
-g++ -std=c++17 -o Reino *.cpp
+g++ -std=c++17 -Wall -Wextra Motor.cpp Combate.cpp Personajes.cpp Loot.cpp Tienda.cpp Utilidades.cpp Monstruos.cpp Monstruos_Data.cpp Habilidades.cpp HabilidadesData.cpp HabilidadesMonstruo.cpp Efectos.cpp Efectos_Data.cpp Armas.cpp Artefactos.cpp Reliquias.cpp ReliquiasDatos.cpp Consumibles.cpp Recursos.cpp CatalogoObjetos.cpp Rng.cpp IO.cpp Zonas.cpp -o Reino
 ```
 
 ### Ejecutar
@@ -95,19 +85,20 @@ O usar el archivo `Run.bat` incluido en Windows.
 
 ## 📋 Estado del proyecto
 
-**Versión actual:** 1.30 — Acto 1 en construcción
+**Versión actual:** 1.4 — Acto 1 en construcción
 
 | Sistema | Estado |
 |---------|--------|
 | Motor principal | ✅ Completo |
 | Sistema de combate | ✅ Completo |
-| Árbol de habilidades | ✅ Completo (hasta nivel 15) |
+| Árbol de habilidades | ✅ Completo (niveles 5, 10, 15 y ultimates de nivel 20) |
 | Zonas 1-4 + Jefe final | ✅ Completo |
-| Arzobispo Veldrame | ✅ Completo |
-| Nzz'gorah | 🔧 Pendiente |
-| Habilidades nivel 20 | 🔧 Pendiente |
-| Sistema de rareza Elite | 🔧 Pendiente |
-| Ítems únicos | 📋 Planeado |
+| Arzobispo Valdrame | ✅ Completo |
+| Nzz'gorah | 🔧 Pendiente de integrar como encuentro |
+| Sistema de rareza Elite | ✅ Implementado |
+| Guardado y carga JSON | ✅ Implementado |
+| Entrada y renderizado desacoplados | 🔧 En progreso |
+| Gremio, logros y misiones | 📋 Siguiente etapa |
 | Imágenes / SFML | 📋 Planeado |
 
 ---

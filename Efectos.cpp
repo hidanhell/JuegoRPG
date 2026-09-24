@@ -2,6 +2,8 @@
 #include "Rng.h"
 #include <iostream>
 #include <vector>
+#include <string>
+#include <algorithm>
 
 extern std::vector<Efecto> listaEfectos;
 extern std::vector<Efecto> listaEfectosLegendarios;
@@ -27,8 +29,21 @@ void Efecto::mostrarInfo() const {
               << std::endl;
 }
 
-// --- Aplicación de Efectos Comunes (IDs 1-5) ---
-void Efecto::aplicar(int &hp, int hpMax, bool &turnoPerdido) const {
+// --- Aplicación de Efectos Comunes (IDs 1-7) ---
+// NOTA: 'inmune' bloquea los IDs 1-7 por completo (Talisman de la Pureza).
+// Esto es mas amplio que lo que dice el texto de la reliquia en
+// ReliquiasDatos.cpp ("Veneno, Sangrado, Quemadura" = solo 1-3) -- decision
+// de diseño pendiente de confirmar contigo: o se amplia el texto del item
+// para reflejar que bloquea TODOS los estados, o se restringe esta condicion
+// a (id >= 1 && id <= 3).
+void Efecto::aplicar(int &hp, int hpMax, bool &turnoPerdido, bool inmune) const {
+    
+    // Si el jugador es inmune (por el Talisman de la Pureza), el efecto se bloquea
+    if (inmune && (id >= 1 && id <= 7)) {
+        std::cout << "[RELIQUIA] ¡El Talismán de la Pureza anula los efectos de " << nombre << "!\n";
+        return;
+    }
+
     int dmg = 0;
 
     switch (id) {
@@ -73,7 +88,7 @@ void Efecto::aplicar(int &hp, int hpMax, bool &turnoPerdido) const {
 
         case 7: // Desorientacion Arcana
             if (Rng::get().probabilidad(intensidad)) {
-                turnoPerdido = true; // opción simple: perder turno
+                turnoPerdido = true; 
                 std::cout << "[EFECTO] La energía arcana te desorienta, fallas tu acción.\n";
             }
             break;
@@ -81,8 +96,6 @@ void Efecto::aplicar(int &hp, int hpMax, bool &turnoPerdido) const {
         default:
             // Caso 0 o IDs no definidos: no sucede nada
             break;
-
-
     }
 }
 
@@ -137,5 +150,32 @@ void aplicarEfectoLegendario(const Efecto &efecto, int &hpObjetivo, int ataqueBa
 
         default:
             break;
+    }
+}
+
+// =========================================================
+// GESTION PASIVA DE RELIQUIAS AL FINAL DEL TURNO
+// =========================================================
+void procesarReliquiasTurno(int &hp, int hpMax, const std::vector<std::string>& reliquias, int &hpEnemigo) {
+    for (const auto& rel : reliquias) {
+        if (rel == "Corazon de Fenix") {
+            int curacion = (int)(hpMax * 0.05); // Cura el 5% de la vida maxima
+            if (curacion < 1) curacion = 1;
+            hp += curacion;
+            if (hp > hpMax) hp = hpMax;
+            std::cout << "[RELIQUIA] El Corazón de Fénix regenera " << curacion << " HP.\n";
+        }
+        else if (rel == "Calavera de Valdrame") {
+            int robo = (int)(hpEnemigo * 0.10); // Drena el 10% de la vida actual del enemigo
+            if (robo < 1) robo = 1;
+            hpEnemigo -= robo;
+            // FIX: sin este clamp, drenar un enemigo con poco HP restante
+            // podia dejar hpEnemigo en negativo (ej. -1), lo cual se veria
+            // mal en el HUD aunque el combate ya lo trate como "muerto".
+            if (hpEnemigo < 0) hpEnemigo = 0;
+            hp += robo;
+            if (hp > hpMax) hp = hpMax;
+            std::cout << "[RELIQUIA] La Calavera de Valdrame absorbe " << robo << " HP del enemigo.\n";
+        }
     }
 }

@@ -3,6 +3,7 @@
 
 #include <string>
 #include <optional>
+#include <vector>
 
 
 // --- Efecto ---
@@ -22,10 +23,23 @@ struct Efecto {
     void mostrarInfo() const;
 
     // Aplica el efecto sobre un objetivo (jugador o monstruo)
-    void aplicar(int &hp, int hpMax, bool &turnoPerdido) const;
+    // FIX: se agrega 'inmune' con valor por defecto (false) para no romper
+    // ninguna llamada existente (Combate.cpp, Habilidades.cpp) que sigue
+    // invocando aplicar() con solo 3 argumentos. Cuando inmune=true, los
+    // efectos comunes (IDs 1-7) se bloquean por completo -- usado por el
+    // Talisman de la Pureza (reliquia 211).
+    void aplicar(int &hp, int hpMax, bool &turnoPerdido, bool inmune = false) const;
 };
 
 // Busca un efecto por ID. Devuelve std::nullopt si no existe.
 std::optional<Efecto> obtenerEfectoPorId(int id);
+
+// =========================================================
+// NUEVO: reliquias con efecto PASIVO de fin de ronda (Corazon de Fenix,
+// Calavera de Valdrame). Se llama una vez por ronda desde iniciarCombate
+// (Combate.cpp), separado de Efecto::aplicar porque estas reliquias no
+// son un "estado" con duracion -- son permanentes mientras se porten.
+// =========================================================
+void procesarReliquiasTurno(int &hp, int hpMax, const std::vector<std::string>& reliquias, int &hpEnemigo);
 
 #endif

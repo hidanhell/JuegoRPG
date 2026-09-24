@@ -5,12 +5,13 @@
       "name": "Run RPG (Windows - Local)",
       "type": "cppdbg",
       "request": "launch",
-      "program": "${workspaceFolder}/Reino",
+      "program": "${workspaceFolder}/build/Debug/outDebug.exe",
       "args": [],
-      "cwd": "D:/programas/JuegoRPG",
-      "console": "externalTerminal",
+      "cwd": "${workspaceFolder}",
+      "externalConsole": true,
       "MIMode": "gdb",
       "miDebuggerPath": "C:/MinGW/bin/gdb.exe",
+      "preLaunchTask": "build",
       "setupCommands": [
         {
           "description": "Enable pretty-printing for gdb",
@@ -18,36 +19,6 @@
           "ignoreFailures": true
         }
       ]
-    },
-    {
-      "name": "C/C++ Runner: Debug Session (Windows)",
-      "type": "cppdbg",
-      "request": "launch",
-      "args": [],
-      "stopAtEntry": false,
-      "externalConsole": true,
-      "cwd": "d:/programas/JuegoRPG",
-      "program": "d:/programas/JuegoRPG/build/Debug/outDebug",
-      "MIMode": "gdb",
-      "miDebuggerPath": "gdb",
-      "setupCommands": [
-        {
-          "description": "Enable pretty-printing for gdb",
-          "text": "-enable-pretty-printing",
-          "ignoreFailures": true
-        }
-      ]
-    },
-    {
-      "name": "RPG Debug (Multiplataforma - Amigo)",
-      "type": "cppdbg",
-      "request": "launch",
-      "args": [],
-      "stopAtEntry": false,
-      "cwd": "${workspaceFolder}",
-      "console": "integratedTerminal",
-      "MIMode": "lldb",
-      "preLaunchTask": "build"
     },
     {
       "name": "C/C++ Runner: Debug Session",

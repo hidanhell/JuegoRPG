@@ -14,7 +14,7 @@
 using namespace std;
 
 // =========================================================
-// BLOQUE M2: LOOT Y MUNDO (v1.32)
+// BLOQUE M2: LOOT Y MUNDO (v1.33 - Filtros de Clase)
 // =========================================================
 
 void gestionarLoot(Personaje &p, int y, bool raro)
@@ -125,9 +125,6 @@ void gestionarLoot(Personaje &p, int y, bool raro)
                 int index = Rng::get().entre(0, (int)posibles.size() - 1);
                 nA = posibles[static_cast<size_t>(index)];
 
-                // CORRECCION: mismo caso que en armas -- se aplicaba "mA" (1.2x)
-                // y luego este 1.15x, dando ~1.38x real en vez de ~1.15x.
-                // Se deja un solo multiplicador.
                 if (raro) {
                     nA.nombre += "+";
                     nA.defensa = static_cast<int>(static_cast<float>(nA.defensa) * 1.15f + 0.5f);
@@ -152,12 +149,14 @@ void gestionarLoot(Personaje &p, int y, bool raro)
 
         std::vector<Reliquia> posibles;
         for (const auto& rel : listaReliquias) {
-            // NUEVO: la Calavera de Valdrame es loot exclusivo del Arzobispo
-            // (ver gestionarLootValdrame). Antes se filtraba entre el resto
-            // de reliquias del loot normal, asi que cualquier mob podia
-            // dartela por simple azar. Se excluye aqui para que solo se
-            // pueda obtener derrotandolo a el.
+            
+            // Excluir la calavera del boss
             if (rel.nombre == "Calavera de Valdrame") continue;
+
+            // --- FILTRO DE CLASE ---
+            if ((rel.nombre == "Garra del Berserker" || rel.nombre == "Hombreras del Coloso") && p.clase != Clase::Guerrero) continue;
+            if ((rel.nombre == "Ojo del Arcano" || rel.nombre == "Gema del Eco") && p.clase != Clase::Mago) continue;
+            if ((rel.nombre == "Pluma del Viento" || rel.nombre == "Carcaj Inagotable") && p.clase != Clase::Cazador) continue;
 
             bool yaTiene = false;
             for (const auto& nombre : p.reliquias) {
@@ -171,43 +170,42 @@ void gestionarLoot(Personaje &p, int y, bool raro)
             p.reliquias.push_back(r.nombre);
             cout << "[RELIQUIA] Has encontrado " << r.nombre << "! (" << r.efecto << ")" << endl;
 
+            // --- APLICAR ESTADISTICAS (Valores ajustados al Catalogo) ---
             if (r.nombre == "Anillo del Asesino") {
-                p.bonusCritico += 10;
-                cout << "[BONUS] Critico +10%." << endl;
+                p.bonusCritico += 5;
+                cout << "[BONUS] Critico +5%." << endl;
             } else if (r.nombre == "Medallon del Guardian") {
-                p.defensaBase += 20;
-                cout << "[BONUS] Defensa +20." << endl;
+                p.defensaBase += 10;
+                cout << "[BONUS] Defensa +10." << endl;
             } else if (r.nombre == "Garra del Berserker" && p.clase == Clase::Guerrero) {
-                p.fuerza += 15;
-                p.ataqueBase += 15;
-                cout << "[BONUS] Fuerza +15." << endl;
+                p.fuerza += 8;
+                p.ataqueBase += 8;
+                cout << "[BONUS] Fuerza +8." << endl;
             } else if (r.nombre == "Ojo del Arcano" && p.clase == Clase::Mago) {
-                p.inteligencia += 15;
-                p.ataqueBase += 15;
-                cout << "[BONUS] Inteligencia +15." << endl;
+                p.inteligencia += 8;
+                p.ataqueBase += 8;
+                cout << "[BONUS] Inteligencia +8." << endl;
             } else if (r.nombre == "Pluma del Viento" && p.clase == Clase::Cazador) {
-                p.destreza += 15;
-                p.ataqueBase += 15;
-                cout << "[BONUS] Destreza +15." << endl;
+                p.destreza += 8;
+                p.ataqueBase += 8;
+                cout << "[BONUS] Destreza +8." << endl;
             } else if (r.nombre == "Botas del Relampago") {
-                p.velocidadBase += 15;
-                cout << "[BONUS] Velocidad +15." << endl;
+                p.velocidadBase += 10;
+                cout << "[BONUS] Velocidad +10." << endl;
             } else if (r.nombre == "Piedra del Alma") {
                 cout << "[BONUS] Oro ganado por combate +25%." << endl;
-            } else if (r.nombre == "Amuleto de Sangre") {
-                cout << "[BONUS] Activo: 20% de contraatacar al recibir dano." << endl;
-            } else if (r.nombre == "Calavera de Valdrame") {
-                cout << "[BONUS] Senor de los Muertos: Absorves 5% HP del enemigo cada turno." << endl;
+            } else if (r.nombre == "Anillo de la Vitalidad") {
+                p.hpMax += 50;
+                p.hp += 50; 
+                cout << "[BONUS] Salud Maxima +50." << endl;
             }
+            // Las reliquias con efectos pasivos puros (Escudo del Destino, Corazon de Fenix, Amuleto) no suman stats aqui.
         }
     }
 }
 
 // =========================================================
-// LOOT EXCLUSIVO DEL ARZOBISPO VALDRAME (v1.32)
-// - Siempre cae un arma Elite de tu clase
-// - El arma Elite tiene efectoId 4 (paralisis) y habilidadId 301 (Grito del Caido)
-// - 15% de probabilidad de soltar la Calavera de Valdrame
+// LOOT EXCLUSIVO DEL ARZOBISPO VALDRAME (v1.33)
 // =========================================================
 void gestionarLootValdrame(Personaje& p) {
     cout << "\n[LOOT ESPECIAL] Entre las cenizas del Arzobispo encuentras algo..." << endl;
@@ -229,13 +227,10 @@ void gestionarLootValdrame(Personaje& p) {
         cout << "  Poder  : " << nW.poder << endl;
         cout << "  Rareza : " << rarezaToString(nW.rareza) << std::endl;
 
-        // Mostrar efecto de estado
         if (nW.efectoId != 0) {
             cout << "  Efecto : ID " << nW.efectoId << " (Paralisis al golpear)" << endl;
         }
 
-        // Mostrar habilidad especial del arma
-        // CORRECCIÓN: obtenerHabilidadPorId retorna optional, desempacamos con value_or
         if (nW.habilidadId != 0) {
             Habilidad hab = obtenerHabilidadPorId(nW.habilidadId).value_or(Habilidad{0,"?","",0,0,"",0});
             cout << "  Habilidad especial [" << hab.nombre << "]:" << endl;
@@ -252,7 +247,7 @@ void gestionarLootValdrame(Personaje& p) {
         if (tolower(c) == 's') {
             p.armaEquipada = nW;
             cout << "[OK] " << nW.nombre << " equipada." << endl;
-            // CORRECCIÓN: obtenerHabilidadPorId retorna optional, desempacamos con value_or
+            
             if (nW.habilidadId != 0) {
                 Habilidad hab = obtenerHabilidadPorId(nW.habilidadId).value_or(Habilidad{0,"?","",0,0,"",0});
                 cout << "[HABILIDAD] " << hab.nombre << " ahora esta activa en tu arma." << endl;
@@ -260,47 +255,44 @@ void gestionarLootValdrame(Personaje& p) {
         }
     }
 
-   // --- RELIQUIA: CALAVERA DE VALDRAME (siempre cae en este bloque) ---
-std::string calavera = "Calavera de Valdrame";
+    // --- RELIQUIA: CALAVERA DE VALDRAME ---
+    std::string calavera = "Calavera de Valdrame";
+    bool yaTiene = false;
+    for (const auto& r : p.reliquias) {
+        if (r == calavera) { yaTiene = true; break; }
+    }
 
-bool yaTiene = false;
-for (const auto& r : p.reliquias) {
-    if (r == calavera) { yaTiene = true; break; }
-}
-
-if (!yaTiene) {
-    if (p.reliquias.size() < 2u) {
-        p.reliquias.push_back(calavera);
-        std::cout << "\n[RELIQUIA EPICA] Has obtenido la CALAVERA DE VALDRAME!" << std::endl;
-        std::cout << " -> Señor de los Muertos: Absorbes 5% HP del enemigo cada turno." << std::endl;
-    } else {
-        std::cout << "\n[RELIQUIA EPICA] Has encontrado la CALAVERA DE VALDRAME!" << std::endl;
-        std::cout << " -> Señor de los Muertos: Absorbes 5% HP del enemigo cada turno." << std::endl;
-        std::cout << "\nYa tienes el máximo de reliquias equipadas." << std::endl;
-        std::cout << "¿Quieres reemplazar una de tus reliquias actuales por la Calavera de Valdrame? (s/n): ";
-
-        char opcion;
-        std::cin >> opcion;
-        if (opcion == 's' || opcion == 'S') {
-            std::cout << "Elige cuál reliquia quieres reemplazar:" << std::endl;
-            for (size_t i = 0; i < p.reliquias.size(); ++i) {
-                std::cout << i+1 << ") " << p.reliquias[i] << std::endl;
-            }
-            size_t idx;
-            std::cin >> idx;
-            if (idx >= 1 && idx <= p.reliquias.size()) {
-                p.reliquias[idx-1] = calavera;
-                std::cout << "\nHas equipado la CALAVERA DE VALDRAME en lugar de tu reliquia anterior." << std::endl;
-            } else {
-                std::cout << "Selección inválida. No se reemplazó ninguna reliquia." << std::endl;
-            }
+    if (!yaTiene) {
+        if (p.reliquias.size() < 2u) {
+            p.reliquias.push_back(calavera);
+            std::cout << "\n[RELIQUIA EPICA] Has obtenido la CALAVERA DE VALDRAME!" << std::endl;
+            std::cout << " -> Señor de los Muertos: Absorbes 5% HP del enemigo cada turno." << std::endl;
         } else {
-            std::cout << "Has decidido no equipar la Calavera de Valdrame." << std::endl;
+            std::cout << "\n[RELIQUIA EPICA] Has encontrado la CALAVERA DE VALDRAME!" << std::endl;
+            std::cout << " -> Señor de los Muertos: Absorbes 5% HP del enemigo cada turno." << std::endl;
+            std::cout << "\nYa tienes el máximo de reliquias equipadas." << std::endl;
+            std::cout << "¿Quieres reemplazar una de tus reliquias actuales por la Calavera de Valdrame? (s/n): ";
+
+            char opcion;
+            std::cin >> opcion;
+            if (opcion == 's' || opcion == 'S') {
+                std::cout << "Elige cuál reliquia quieres reemplazar (Asegurate de restar las estadisticas base manualmente si es necesario):" << std::endl;
+                for (size_t i = 0; i < p.reliquias.size(); ++i) {
+                    std::cout << i+1 << ") " << p.reliquias[i] << std::endl;
+                }
+                size_t idx;
+                std::cin >> idx;
+                if (idx >= 1 && idx <= p.reliquias.size()) {
+                    p.reliquias[idx-1] = calavera;
+                    std::cout << "\nHas equipado la CALAVERA DE VALDRAME en lugar de tu reliquia anterior." << std::endl;
+                } else {
+                    std::cout << "Selección inválida. No se reemplazó ninguna reliquia." << std::endl;
+                }
+            } else {
+                std::cout << "Has decidido no equipar la Calavera de Valdrame." << std::endl;
+            }
         }
     }
-}
-
-
 }
 
 // --- NOMBRES DE ZONA ---

@@ -30,7 +30,7 @@ struct Monstruo {
     int expAlMorir;
 
     // --- Debuffs temporales ---
-    int turnosDebuffDefensa; // Ultima Bestia (302): cuantos turnos queda la armadura rota
+    int turnosDebuffDefensa; // Ultima Bestia (312): cuantos turnos queda la armadura rota
 
     // --- Estados y Habilidades ---
     std::vector<Efecto> efectosActivos;

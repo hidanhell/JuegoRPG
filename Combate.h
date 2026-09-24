@@ -5,6 +5,14 @@
 #include <optional>
 #include <string>
 
+// Turnos especializados, separados en sus propios archivos.
+// Se incluyen aqui para que cualquier archivo que ya haga
+// #include "combate.h" siga viendo turnoJugador/turnoEnemigo/
+// manejarFasesJefe sin tener que tocar sus includes.
+#include "FasesJefe.h"
+#include "TurnoJugador.h"
+#include "TurnoEnemigo.h"
+
 // =========================================================
 // Generación de Enemigos
 // =========================================================
@@ -27,20 +35,15 @@ void iniciarCombate(Personaje &p, int zonaActual);
 
 // HUD y procesamiento de estados
 void mostrarHUDCombate(const Personaje &p, const Monstruo &m, int hpInicial, const std::string &etiqueta);
-void procesarEstadosEnemigo(Monstruo &m, int hpInicial);
-void procesarEstadosJugador(Personaje &p);
 
-// Fases de jefe (aura de Valdrame, transformaciones, fases de Lancelot)
-void manejarFasesJefe(Monstruo &m, Personaje &p, int y,
-                       bool &fase2, bool &fase3, bool &faseValdrame2,
-                       int hpInicial, int &turnosAbsorcion);
+// Devuelven true si el objetivo debe perder su turno (Paralisis,
+// Evasion, Congelacion, Desorientacion Arcana).
+bool procesarEstadosEnemigo(Monstruo &m, int hpInicial);
+bool procesarEstadosJugador(Personaje &p);
 
-// Turnos
-// turnoJugador recibe turnosAbsorcion por referencia porque la Fase 2
-// de Lancelot (Escamas del Rey) necesita descontar los usos restantes
-// cuando el jugador ataca.
-bool turnoJugador(Personaje &p, Monstruo &m, int &turnosAbsorcion);
-bool turnoEnemigo(Personaje &p, Monstruo &m, bool faseValdrame2, bool fase3Lancelot);
+// Descuenta la duracion de los buffs de elixires activos del jugador
+// y revierte su bono al expirar (ver BuffActivo en Personajes.h).
+void procesarBuffsJugador(Personaje &p);
 
 // Resolución
 void resolverFinDeCombate(Personaje &p, Monstruo &m, int y, bool huidaExitosa, bool monstruoHuyo);

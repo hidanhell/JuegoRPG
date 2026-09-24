@@ -27,6 +27,7 @@
         "Reliquias.cpp",
         "ReliquiasDatos.cpp",
         "Consumibles.cpp",
+        "Recursos.cpp",
         "CatalogoObjetos.cpp",
         "Rng.cpp",
         "IO.cpp",
