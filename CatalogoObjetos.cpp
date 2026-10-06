@@ -1,4 +1,4 @@
-#include "CatalogoObjetos.h" // Corregida la mayúscula inicial para Linux
+#include "CatalogoObjetos.h"
 
 // =========================================================
 // CATALOGO DE ARMAS POR ZONA

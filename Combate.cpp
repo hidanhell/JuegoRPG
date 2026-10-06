@@ -1,10 +1,19 @@
 #include "Combate.h"
 #include "Utilidades.h"
 #include "Loot.h"
+#include "HabilidadesMonstruo.h"
 #include "Personajes.h"
 #include "Monstruos.h"
 #include "Efectos.h"
+#include <iostream>
+#include <algorithm>
+#include <cstdlib>
+#include <limits>
+#include "CatalogoObjetos.h"
+#include "Consumibles.h"
+#include "Habilidades.h"
 #include "Rng.h"
+#include "Recursos.h"
 #include <iostream>
 #include <algorithm>
 

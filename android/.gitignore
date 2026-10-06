@@ -1,0 +1,12 @@
+# Gradle / Android Studio
+.gradle/
+build/
+/local.properties
+.idea/
+*.iml
+.cxx/
+.externalNativeBuild/
+
+# Keystores (nunca comitear)
+*.jks
+*.keystore

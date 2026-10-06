@@ -18,6 +18,13 @@ namespace IO {
     IEntrada&      entrada();
     void establecerRender(IRenderizador* instancia);
     void establecerEntrada(IEntrada* instancia);
+
+    // Directorio base para guardar/cargar partidas. Por defecto "savegames"
+    // (relativo al CWD, valido en desktop). En Android el CWD del proceso no
+    // es escribible: el puente JNI llama establecerDirectorioGuardado() con
+    // Context.getFilesDir() antes de arrancar el motor.
+    std::string directorioGuardado();
+    void establecerDirectorioGuardado(const std::string& dir);
 }
 
 #endif // IO_H

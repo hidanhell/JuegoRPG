@@ -1,0 +1,33 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(g++ *)",
+      "Skill(run)",
+      "Bash(tmux -V)",
+      "Bash(timeout 5 ./Reino)",
+      "Bash(gtimeout 5 /Users/cesar/Documents/androidClaude/JuegoRPG/Reino)",
+      "Bash(perl -e 'alarm 6; exec \"/Users/cesar/Documents/androidClaude/JuegoRPG/Reino\"')",
+      "Bash(git *)",
+      "Bash(gh auth *)",
+      "Bash(gh repo *)",
+      "Bash(gh api *)",
+      "Bash(GH_TOKEN=$\\(gh auth token\\) git push fork feature/mac-support)",
+      "Bash(export TMPDIR=/tmp)",
+      "Bash(grep -rn \"rand\\(\\)\" /Users/cesar/Documents/androidClaude/JuegoRPG --include=\"*.cpp\")",
+      "Bash(CLAUDE_CODE_TMPDIR=/var/folders grep -rn \"rand\\(\\)\" /Users/cesar/Documents/androidClaude/JuegoRPG --include=\"*.cpp\")",
+      "Bash(perl -i -pe \"s/const val CLEAR_SCREEN = '.*?' \\\\/\\\\/ '\\\\\\\\\\\\\\\\f'/const val CLEAR_SCREEN = '\\\\\\\\\\\\\\\\u000C' \\\\/\\\\/ form feed/\" android/app/src/main/java/com/hidanhell/juegorphg/GameEngine.kt)",
+      "Bash(gradle --version)",
+      "Bash(java -version)",
+      "Bash(/Applications/Android Studio.app/Contents/jbr/Contents/Home/bin/java *)",
+      "Bash(JAVA_HOME=\"/Applications/Android Studio.app/Contents/jbr/Contents/Home\" ~/Library/Android/sdk/tools/bin/sdkmanager *)",
+      "Bash(/Users/cesar/.gradle/wrapper/dists/gradle-9.4.1-bin/arn2x92ynaizyzdaamcbpbhtj/gradle-9.4.1/bin/gradle wrapper *)",
+      "Bash(JAVA_HOME='/Applications/Android Studio.app/Contents/jbr/Contents/Home' cd /Users/cesar/Documents/androidClaude/JuegoRPG/android)",
+      "Bash(JAVA_HOME='/Applications/Android Studio.app/Contents/jbr/Contents/Home' /Users/cesar/.gradle/wrapper/dists/gradle-9.4.1-bin/arn2x92ynaizyzdaamcbpbhtj/gradle-9.4.1/bin/gradle wrapper --gradle-version 8.6 --distribution-type bin)",
+      "Bash(cp ~/Documents/Android_ejemplos/AndroidExam/gradlew /Users/cesar/Documents/androidClaude/JuegoRPG/android/gradlew)",
+      "Bash(cp ~/Documents/Android_ejemplos/AndroidExam/gradlew.bat /Users/cesar/Documents/androidClaude/JuegoRPG/android/gradlew.bat)",
+      "Bash(chmod +x /Users/cesar/Documents/androidClaude/JuegoRPG/android/gradlew)",
+      "Bash(python3 *)",
+      "Bash(/usr/libexec/java_home -V)"
+    ]
+  }
+}

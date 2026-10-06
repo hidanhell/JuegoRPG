@@ -1,0 +1,11 @@
+# Plantilla de local.properties. Copiar a `local.properties` y ajustar rutas.
+# NO comitear local.properties real (contiene rutas absolutas de la maquina).
+#
+#   cp local.properties.example local.properties
+#
+# macOS (ruta tipica del SDK instalado por Android Studio):
+sdk.dir=/Users/TU_USUARIO/Library/Android/sdk
+
+# El NDK se resuelve por version desde build.gradle (android.ndkVersion) o
+# se instala via SDK Manager. Si quieres fijarlo a mano, descomenta:
+# ndk.dir=/Users/TU_USUARIO/Library/Android/sdk/ndk/25.2.9519653
