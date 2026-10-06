@@ -1,22 +1,32 @@
-#include "tienda.h"
-#include "utilidades.h"
+#include "Tienda.h"
+#include "Utilidades.h"
 #include "Armas.h"
 #include "Artefactos.h"
 #include "Reliquias.h"
 #include <iostream>
 #include <algorithm>
 #include <vector>
-#include "catalogoObjetos.h"
+#include "CatalogoObjetos.h"
 #include "Consumibles.h"
 #include "Rng.h"
 
 using namespace std;
+
+static int zonaDePosicion(int y) {
+    return (y <= 60) ? 1 : (y <= 120) ? 2 : (y <= 180) ? 3 : (y <= 240) ? 4 : 5;
+}
+
+static int precioTienda(int precio, int zonaArticulo, int zonaActual) {
+    return zonaArticulo > zonaActual ? (precio * 3 + 1) / 2 : precio;
+}
 
 // =========================================================
 // BLOQUE M3: SISTEMA DE TIENDA (v2.2 - Venta de Reliquias)
 // =========================================================
 
 void entrarTienda(Personaje &p) {
+    const int zonaActual = zonaDePosicion(p.posY);
+    const int zonaMaximaTienda = min(4, zonaActual + 1);
     bool enMenu = true;
 
     while (enMenu) {
@@ -50,8 +60,12 @@ void entrarTienda(Personaje &p) {
                 int idxItem = 1;
 
                 for (const auto& item : listaConsumibles) {
+                    if (item.zona > zonaMaximaTienda) continue;
+                    const int precio = precioTienda(item.precio, item.zona, zonaActual);
                     cout << idxItem << ". " << item.nombre 
-                         << " (" << item.precio << " oro) - " << item.descripcion << endl;
+                        << " (" << precio << " oro)"
+                        << (item.zona > zonaActual ? " [zona adelantada +50%]" : "")
+                        << " - " << item.descripcion << endl;
                     stockTienda.push_back(item);
                     idxItem++;
                 }
@@ -60,9 +74,10 @@ void entrarTienda(Personaje &p) {
                 int seleccion; cin >> seleccion;
                 if (seleccion > 0 && seleccion <= (int)stockTienda.size()) {
                     Consumible elegido = stockTienda[static_cast<size_t>(seleccion - 1)];
+                    const int precio = precioTienda(elegido.precio, elegido.zona, zonaActual);
 
-                    if (p.oro >= elegido.precio && p.inventario.size() < 10) {
-                        p.oro -= elegido.precio;
+                    if (p.oro >= precio && p.inventario.size() < 10) {
+                        p.oro -= precio;
                         p.inventario.push_back(elegido);
                         cout << "-Compraste- " << elegido.nombre << "-" << endl;
                     } else {
@@ -77,8 +92,14 @@ void entrarTienda(Personaje &p) {
                 vector<Artefacto> poolArt;
                 int idxCompra = 1;
 
-                for (auto &a : listaArmas) if (a.clase == p.clase) poolArmas.push_back(a);
-                for (auto &a : listaArtefactos) if (a.clase == p.clase) poolArt.push_back(a);
+                for (auto &a : listaArmas) {
+                    if (a.clase == p.clase && a.zona <= zonaMaximaTienda && a.rareza != Rareza::Elite) {
+                        poolArmas.push_back(a);
+                    }
+                }
+                for (auto &a : listaArtefactos) {
+                    if (a.clase == p.clase && a.zona <= zonaMaximaTienda) poolArt.push_back(a);
+                }
 
                 std::vector<Arma> poolArmasSeleccionadas;
                 std::vector<Artefacto> poolArtSeleccionadas;
@@ -95,15 +116,21 @@ void entrarTienda(Personaje &p) {
                 }
 
                 for (int i = 0; i < (int)poolArmasSeleccionadas.size(); i++) {
-                    cout << idxCompra << ". " << poolArmasSeleccionadas[static_cast<size_t>(i)].nombre
+                    const Arma& arma = poolArmasSeleccionadas[static_cast<size_t>(i)];
+                    const int precio = precioTienda(arma.precio, arma.zona, zonaActual);
+                    cout << idxCompra << ". " << arma.nombre
                          << " [Atk +" << poolArmasSeleccionadas[static_cast<size_t>(i)].poder << "] (" 
-                         << poolArmasSeleccionadas[static_cast<size_t>(i)].precio << " oro)" << endl;
+                        << precio << " oro)"
+                        << (arma.zona > zonaActual ? " [zona adelantada +50%]" : "") << endl;
                     idxCompra++;
                 }
                 for (int i = 0; i < (int)poolArtSeleccionadas.size(); i++) {
-                    cout << idxCompra << ". " << poolArtSeleccionadas[static_cast<size_t>(i)].nombre 
+                    const Artefacto& artefacto = poolArtSeleccionadas[static_cast<size_t>(i)];
+                    const int precio = precioTienda(artefacto.precio, artefacto.zona, zonaActual);
+                    cout << idxCompra << ". " << artefacto.nombre 
                          << " [Def +" << poolArtSeleccionadas[static_cast<size_t>(i)].defensa << "] (" 
-                         << poolArtSeleccionadas[static_cast<size_t>(i)].precio << " oro)" << endl;
+                        << precio << " oro)"
+                        << (artefacto.zona > zonaActual ? " [zona adelantada +50%]" : "") << endl;
                     idxCompra++;
                 }
                 cout << "0. Cancelar" << endl;
@@ -112,9 +139,10 @@ void entrarTienda(Personaje &p) {
 
                 if (seleccion > 0 && seleccion <= (int)poolArmasSeleccionadas.size()) {
                     Arma elegida = poolArmasSeleccionadas[static_cast<size_t>(seleccion - 1)];
+                    const int precio = precioTienda(elegida.precio, elegida.zona, zonaActual);
                     if (elegida.poder > p.armaEquipada.poder) {
-                        if (p.oro >= elegida.precio) {
-                            p.oro -= elegida.precio;
+                        if (p.oro >= precio) {
+                            p.oro -= precio;
                             p.armaEquipada = elegida;
                             cout << "-Arma equipada con exito-" << endl;
                         } else cout << "No tienes suficiente oro." << endl;
@@ -123,13 +151,14 @@ void entrarTienda(Personaje &p) {
                 else if (seleccion > static_cast<int>(poolArmasSeleccionadas.size()) && seleccion <= static_cast<int>(poolArmasSeleccionadas.size()) + static_cast<int>(poolArtSeleccionadas.size())) {
                     const auto offset = static_cast<std::size_t>(seleccion - 1 - static_cast<int>(poolArmasSeleccionadas.size()));
                     Artefacto elegido = poolArtSeleccionadas[offset];
+                    const int precio = precioTienda(elegido.precio, elegido.zona, zonaActual);
                     if (elegido.defensa > p.artefactoEquipado.defensa) {
-                        if (p.oro >= elegido.precio) {
-                            p.oro -= elegido.precio;
+                        if (p.oro >= precio) {
+                            p.oro -= precio;
                             p.artefactoEquipado = elegido;
                             cout << "-Artefacto equipado con exito-" << endl;
-                        } else cout << "Tu artefacto actual es mejor o igual." << endl;
-                    } else cout << "No tienes suficiente oro." << endl;
+                        } else cout << "No tienes suficiente oro." << endl;
+                    } else cout << "Tu artefacto actual es mejor o igual." << endl;
                 }
             }
             else if (categoria == 3) { // --- RELIQUIAS ---
@@ -145,6 +174,8 @@ void entrarTienda(Personaje &p) {
                     int idx = 1;
 
                     for (const auto& rel : listaReliquias) {
+                        if (!reliquiaCompatibleConClase(rel, p.clase)) continue;
+
                         bool yaTiene = false;
                         for (const auto& nombre : p.reliquias) {
                             if (nombre == rel.nombre) { yaTiene = true; break; }
@@ -179,33 +210,8 @@ void entrarTienda(Personaje &p) {
                                 p.reliquias.push_back(elegida.nombre);
                                 cout << "\n[RELIQUIA] Obtuviste: " << elegida.nombre << "!" << endl;
                                 cout << "[EFECTO] " << elegida.efecto << endl;
-
-                                // Aplicar efectos inmediatos
-                                if (elegida.nombre == "Anillo del Asesino") {
-                                    p.bonusCritico += 5;
-                                    cout << "[BONUS] Critico +5%." << endl;
-                                } else if (elegida.nombre == "Medallon del Guardian") {
-                                    p.defensaBase += 10;
-                                    cout << "[BONUS] Defensa +10." << endl;
-                                } else if (elegida.nombre == "Garra del Berserker" && p.clase == Clase::Guerrero) {
-                                    p.fuerza += 8;
-                                    p.ataqueBase += 8;
-                                    cout << "[BONUS] Fuerza +8." << endl;
-                                } else if (elegida.nombre == "Ojo del Arcano" && p.clase == Clase::Mago) {
-                                    p.inteligencia += 8;
-                                    p.ataqueBase += 8;
-                                    cout << "[BONUS] Inteligencia +8." << endl;
-                                } else if (elegida.nombre == "Pluma del Viento" && p.clase == Clase::Cazador) {
-                                    p.destreza += 8;
-                                    p.ataqueBase += 8;
-                                    cout << "[BONUS] Destreza +8." << endl;
-                                } else if (elegida.nombre == "Botas del Relampago") {
-                                    p.velocidadBase += 10;
-                                    cout << "[BONUS] Velocidad +10." << endl;
-                                } else if (elegida.nombre == "Piedra del Alma") {
-                                    cout << "[BONUS] Oro ganado por combate +25%." << endl;
-                                } else if (elegida.nombre == "Amuleto de Sangre") {
-                                    cout << "[BONUS] Activo: 20% de contraatacar al recibir dano." << endl;
+                                if (aplicarBonosReliquia(p, elegida)) {
+                                    cout << "[BONUS] Bono permanente aplicado." << endl;
                                 }
                             } else {
                                 cout << "[!] No tienes suficiente oro." << endl;
@@ -286,25 +292,11 @@ void entrarTienda(Personaje &p) {
                             }
                         }
 
-                        // --- REVERTIR ESTADISTICAS ---
-                        // IMPORTANTE: Asegurate de que estos valores coincidan con los que suma tu archivo loot.cpp o la compra
-                        if (nombreReliquia == "Anillo del Asesino") {
-                            p.bonusCritico -= 5;
-                        } else if (nombreReliquia == "Medallon del Guardian") {
-                            p.defensaBase -= 10;
-                        } else if (nombreReliquia == "Garra del Berserker" && p.clase == Clase::Guerrero) {
-                            p.fuerza -= 8;
-                            p.ataqueBase -= 8;
-                        } else if (nombreReliquia == "Ojo del Arcano" && p.clase == Clase::Mago) {
-                            p.inteligencia -= 8;
-                            p.ataqueBase -= 8;
-                        } else if (nombreReliquia == "Pluma del Viento" && p.clase == Clase::Cazador) {
-                            p.destreza -= 8;
-                            p.ataqueBase -= 8;
-                        } else if (nombreReliquia == "Botas del Relampago") {
-                            p.velocidadBase -= 10;
-                        }
-                        // Las reliquias de efectos pasivos en combate (Calavera, Amuleto, Piedra Alma) no restan stats base
+                        const auto reliquia = std::find_if(listaReliquias.begin(), listaReliquias.end(),
+                            [&nombreReliquia](const Reliquia& candidata) {
+                                return candidata.nombre == nombreReliquia;
+                            });
+                        if (reliquia != listaReliquias.end()) retirarBonosReliquia(p, *reliquia);
 
                         p.oro += pVentaReliquia;
                         p.reliquias.erase(p.reliquias.begin() + rReal);

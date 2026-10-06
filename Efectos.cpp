@@ -1,24 +1,40 @@
-#include "efectos.h"
+#include "Efectos.h"
 #include "Rng.h"
 #include <iostream>
 #include <vector>
 #include <string>
 #include <algorithm>
+#include <utility>
 
 extern std::vector<Efecto> listaEfectos;
 extern std::vector<Efecto> listaEfectosLegendarios;
 
 std::optional<Efecto> obtenerEfectoPorId(int id) {
-    for (const auto& e : listaEfectos)
+    for (const auto& e : listaEfectos) {
         if (e.id == id) return e;
-    for (const auto& e : listaEfectosLegendarios)
+    }
+    for (const auto& e : listaEfectosLegendarios) {
         if (e.id == id) return e;
+    }
     return std::nullopt;
+}
+
+void agregarEfectoActivo(std::vector<Efecto>& efectos, const Efecto& nuevo) {
+    auto existente = std::find_if(efectos.begin(), efectos.end(), [&nuevo](const Efecto& efecto) {
+        return efecto.id == nuevo.id;
+    });
+    if (existente == efectos.end()) {
+        efectos.push_back(nuevo);
+        return;
+    }
+
+    existente->duracion = std::max(existente->duracion, nuevo.duracion);
+    existente->intensidad = std::max(existente->intensidad, nuevo.intensidad);
 }
 
 // --- Constructor ---
 Efecto::Efecto(int i, std::string n, std::string t, int d, int in)
-    : id(i), nombre(n), tipo(t), duracion(d), intensidad(in) {}
+    : id(i), nombre(std::move(n)), tipo(std::move(t)), duracion(d), intensidad(in) {}
 
 void Efecto::mostrarInfo() const {
     std::cout << "ID: " << id
@@ -26,19 +42,11 @@ void Efecto::mostrarInfo() const {
               << " | Tipo: " << tipo
               << " | Duración: " << duracion << " turnos"
               << " | Intensidad: " << intensidad
-              << std::endl;
+              << '\n';
 }
 
 // --- Aplicación de Efectos Comunes (IDs 1-7) ---
-// NOTA: 'inmune' bloquea los IDs 1-7 por completo (Talisman de la Pureza).
-// Esto es mas amplio que lo que dice el texto de la reliquia en
-// ReliquiasDatos.cpp ("Veneno, Sangrado, Quemadura" = solo 1-3) -- decision
-// de diseño pendiente de confirmar contigo: o se amplia el texto del item
-// para reflejar que bloquea TODOS los estados, o se restringe esta condicion
-// a (id >= 1 && id <= 3).
 void Efecto::aplicar(int &hp, int hpMax, bool &turnoPerdido, bool inmune) const {
-    
-    // Si el jugador es inmune (por el Talisman de la Pureza), el efecto se bloquea
     if (inmune && (id >= 1 && id <= 7)) {
         std::cout << "[RELIQUIA] ¡El Talismán de la Pureza anula los efectos de " << nombre << "!\n";
         return;
@@ -48,13 +56,13 @@ void Efecto::aplicar(int &hp, int hpMax, bool &turnoPerdido, bool inmune) const 
 
     switch (id) {
         case 1: // Quemadura
-            dmg = (int)(hpMax * (intensidad / 100.0));
+            dmg = static_cast<int>(hpMax * (intensidad / 100.0));
             hp -= dmg;
             std::cout << "[EFECTO] Quemadura causa " << dmg << " de daño.\n";
             break;
 
         case 2: // Veneno
-            dmg = (int)(hpMax * (intensidad / 100.0));
+            dmg = static_cast<int>(hpMax * (intensidad / 100.0));
             hp -= dmg;
             std::cout << "[EFECTO] Veneno causa " << dmg << " de daño.\n";
             break;
@@ -65,28 +73,28 @@ void Efecto::aplicar(int &hp, int hpMax, bool &turnoPerdido, bool inmune) const 
             std::cout << "[EFECTO] Sangrado causa " << dmg << " de daño.\n";
             break;
 
-        case 4: // Paralisis
+        case 4: // Parálisis
             if (Rng::get().probabilidad(intensidad)) {
                 turnoPerdido = true;
-                std::cout << "[EFECTO] Paralisis te impide actuar este turno.\n";
+                std::cout << "[EFECTO] Parálisis te impide actuar este turno.\n";
             }
             break;
 
-        case 5: // Evasion
+        case 5: // Evasión
             if (Rng::get().probabilidad(intensidad)) {
                 turnoPerdido = true;
                 std::cout << "[EFECTO] ¡El ataque fue evadido!\n";
             }
             break;
 
-        case 6: // Congelacion
+        case 6: // Congelación
             if (Rng::get().probabilidad(intensidad)) {
                 turnoPerdido = true;
                 std::cout << "[EFECTO] Congelación te inmoviliza este turno.\n";
             }
             break;
 
-        case 7: // Desorientacion Arcana
+        case 7: // Desorientación Arcana
             if (Rng::get().probabilidad(intensidad)) {
                 turnoPerdido = true; 
                 std::cout << "[EFECTO] La energía arcana te desorienta, fallas tu acción.\n";
@@ -94,54 +102,42 @@ void Efecto::aplicar(int &hp, int hpMax, bool &turnoPerdido, bool inmune) const 
             break;
 
         default:
-            // Caso 0 o IDs no definidos: no sucede nada
             break;
     }
 }
 
-// --- EFECTOS LEGENDARIOS ---
-std::vector<Efecto> efectosLegendarios = {
-    {201, "Corte del Rey Dragon", "Ofensivo", 1, 110},   // Excalibur
-    {202, "Supernova", "Ofensivo", 1, 90},               // Bastón
-    {203, "Flecha Divina", "Ofensivo", 1, 90},           // Arco
-    {204, "Dios del Caos", "Estado", 1, 25}              // Lancelot
-};
-
 // --- Aplicación de Efectos Legendarios (IDs 201-204) ---
 void aplicarEfectoLegendario(const Efecto &efecto, int &hpObjetivo, int ataqueBase, int &hpAtacante, int hpMaxAtacante, bool &turnoPerdido) {
-    // Se activan solo si el atacante tiene <=40% de vida
     if (hpAtacante > (hpMaxAtacante * 0.4)) return;
 
     int dmg = 0;
 
     switch (efecto.id) {
-        case 201: // Corte del Rey Dragon
-            dmg = (int)(ataqueBase * (efecto.intensidad / 100.0));
+        case 201: // Corte del Rey Dragón
+            dmg = static_cast<int>(ataqueBase * (efecto.intensidad / 100.0));
             hpObjetivo -= dmg;
-            std::cout << "[LEGENDARIO] Corte del Rey Dragon inflige " << dmg << " de daño.\n";
+            std::cout << "[LEGENDARIO] Corte del Rey Dragón inflige " << dmg << " de daño.\n";
             break;
 
         case 202: // Supernova
-            dmg = (int)(ataqueBase * (efecto.intensidad / 100.0));
+            dmg = static_cast<int>(ataqueBase * (efecto.intensidad / 100.0));
             hpObjetivo -= dmg;
             std::cout << "[LEGENDARIO] Supernova explota causando " << dmg << " de daño.\n";
             break;
 
         case 203: // Flecha Divina
-            dmg = (int)(ataqueBase * (efecto.intensidad / 100.0));
+            dmg = static_cast<int>(ataqueBase * (efecto.intensidad / 100.0));
             hpObjetivo -= dmg;
             std::cout << "[LEGENDARIO] Flecha Divina atraviesa causando " << dmg << " de daño.\n";
             break;
 
         case 204: // Dios del Caos
-            // Paralisis 25%
             if (Rng::get().probabilidad(efecto.intensidad)) {
                 turnoPerdido = true;
                 std::cout << "[LEGENDARIO] Dios del Caos paraliza al objetivo.\n";
             }
-            // Curación 25%
             if (Rng::get().probabilidad(efecto.intensidad)) {
-                int curacion = (int)(hpMaxAtacante * 0.15);
+                int curacion = static_cast<int>(hpMaxAtacante * 0.15);
                 hpAtacante += curacion;
                 if (hpAtacante > hpMaxAtacante) hpAtacante = hpMaxAtacante;
                 std::cout << "[LEGENDARIO] Dios del Caos restaura " << curacion << " de vida.\n";
@@ -153,25 +149,20 @@ void aplicarEfectoLegendario(const Efecto &efecto, int &hpObjetivo, int ataqueBa
     }
 }
 
-// =========================================================
-// GESTION PASIVA DE RELIQUIAS AL FINAL DEL TURNO
-// =========================================================
+// --- Gestión pasiva de reliquias al final del turno ---
 void procesarReliquiasTurno(int &hp, int hpMax, const std::vector<std::string>& reliquias, int &hpEnemigo) {
     for (const auto& rel : reliquias) {
-        if (rel == "Corazon de Fenix") {
-            int curacion = (int)(hpMax * 0.05); // Cura el 5% de la vida maxima
+        if (rel == "Corazon de Fenix" && hp > 0) {
+            int curacion = static_cast<int>(hpMax * 0.05);
             if (curacion < 1) curacion = 1;
             hp += curacion;
             if (hp > hpMax) hp = hpMax;
             std::cout << "[RELIQUIA] El Corazón de Fénix regenera " << curacion << " HP.\n";
         }
         else if (rel == "Calavera de Valdrame") {
-            int robo = (int)(hpEnemigo * 0.10); // Drena el 10% de la vida actual del enemigo
+            int robo = static_cast<int>(hpEnemigo * 0.05);
             if (robo < 1) robo = 1;
             hpEnemigo -= robo;
-            // FIX: sin este clamp, drenar un enemigo con poco HP restante
-            // podia dejar hpEnemigo en negativo (ej. -1), lo cual se veria
-            // mal en el HUD aunque el combate ya lo trate como "muerto".
             if (hpEnemigo < 0) hpEnemigo = 0;
             hp += robo;
             if (hp > hpMax) hp = hpMax;

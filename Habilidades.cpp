@@ -4,16 +4,12 @@
 #include "Rng.h"
 #include <iostream>
 #include <optional>
-#include <algorithm> // FIX: Necesario para std::max y std::min
+#include <algorithm>
 
 extern std::vector<Habilidad> listaHabilidadesGlobal;
-// CORRECCIÓN: listaEfectos no estaba declarada como extern en este archivo
 extern std::vector<Efecto> listaEfectos;
 
-// ==========================
-// FIX: Funciones de ayuda para no repetir logica y evitar HP negativo
-// No borran nada de lo tuyo, solo centralizan
-// ==========================
+// --- Funciones auxiliares de cálculo de daño ---
 inline int calcularDanoReal(int danoBase, int defensaEnemigo, bool ignoraParcial = false) {
     int defensaEfectiva = ignoraParcial ? defensaEnemigo / 2 : defensaEnemigo;
     return std::max(1, danoBase - defensaEfectiva);
@@ -21,46 +17,47 @@ inline int calcularDanoReal(int danoBase, int defensaEnemigo, bool ignoraParcial
 
 inline void aplicarDanoSeguro(Monstruo &m, int danoReal) {
     m.hp -= danoReal;
-    if (m.hp < 0) m.hp = 0; // FIX: Evita HP en -500 que rompe el 5% de Grito del Caido
+    if (m.hp < 0) m.hp = 0;
 }
 
-// ==========================
-// FUNCIÓN GLOBAL DE ACCESO
-// ==========================
+// --- Función global de acceso ---
 std::optional<Habilidad> obtenerHabilidadPorId(int id) {
-    for (auto &h : listaHabilidadesGlobal)
+    for (auto &h : listaHabilidadesGlobal) {
         if (h.id == id) return h;
+    }
     return std::nullopt;
 }
 
 // ============================================
-// EJECUCIÓN DE HABILIDADES PERSONAJES
+// EJECUCIÓN DE HABILIDADES DE PERSONAJES
 // ============================================
 void ejecutarHabilidad(Personaje &pj, Monstruo &m, int idHabilidad) {
     auto habOpt = obtenerHabilidadPorId(idHabilidad);
     if (!habOpt) return;
     Habilidad hab = *habOpt;
     int dano = 0;
-    bool turnoPerdido = false;
+    auto aplicarEstado = [&m](int idEfecto) {
+        if (m.hp <= 0) return;
+        if (auto efecto = obtenerEfectoPorId(idEfecto)) {
+            agregarEfectoActivo(m.efectosActivos, *efecto);
+        }
+    };
 
     switch (hab.id) {
 
-        // -----------------------------------------------
-        // GUERRERO — ACTIVAS NIVEL 10
-        // -----------------------------------------------
-
+        // --- GUERRERO (Nivel 10) ---
         case 101: // Embate con Escudo
-            dano = pj.ataqueBase + static_cast<int>(pj.defensaBase * 1.4);
+            dano = pj.ataqueBase + pj.armaEquipada.poder + static_cast<int>(pj.defensaBase * 1.4f);
             aplicarDanoSeguro(m, calcularDanoReal(dano, m.defensa));
             std::cout << "[HABILIDAD] " << hab.nombre << " inflige " << dano << " de dano.\n";
-            if (auto ef = obtenerEfectoPorId(4)) ef->aplicar(m.hp, m.hpMax, turnoPerdido);
+            aplicarEstado(4);
             break;
 
         case 102: // Tajo Sangriento
-            dano = pj.ataqueBase + static_cast<int>(pj.fuerza * 1.3);
+            dano = pj.ataqueBase + pj.armaEquipada.poder + static_cast<int>(pj.fuerza * 1.3f);
             aplicarDanoSeguro(m, calcularDanoReal(dano, m.defensa));
             std::cout << "[HABILIDAD] " << hab.nombre << " inflige " << dano << " de dano.\n";
-            if (auto ef = obtenerEfectoPorId(3)) ef->aplicar(m.hp, m.hpMax, turnoPerdido);
+            aplicarEstado(3);
             break;
 
         case 103: // Frenesí
@@ -68,7 +65,8 @@ void ejecutarHabilidad(Personaje &pj, Monstruo &m, int idHabilidad) {
             int golpes = Rng::get().entre(2, 4);
             int danoTotal = 0;
             for (int i = 0; i < golpes; i++) {
-                int golpe = static_cast<int>(pj.ataqueBase * 1.5);
+                int golpe = static_cast<int>(pj.ataqueBase * 1.5f);
+                if (i == 0) golpe += pj.armaEquipada.poder;
                 int danoReal = calcularDanoReal(golpe, m.defensa);
                 aplicarDanoSeguro(m, danoReal);
                 danoTotal += danoReal;
@@ -76,48 +74,42 @@ void ejecutarHabilidad(Personaje &pj, Monstruo &m, int idHabilidad) {
             }
             std::cout << "[HABILIDAD] " << hab.nombre << " realiza " << golpes
                       << " golpes e inflige un total de " << danoTotal << " de dano.\n";
-            if (auto ef = obtenerEfectoPorId(3)) ef->aplicar(m.hp, m.hpMax, turnoPerdido);
+            aplicarEstado(3);
         }
             break;
 
-        // -----------------------------------------------
-        // MAGO — ACTIVAS NIVEL 10
-        // -----------------------------------------------
-
+        // --- MAGO (Nivel 10) ---
         case 111: // Bola de Fuego
-            dano = pj.inteligencia + static_cast<int>(pj.inteligencia * 1.4);
+            dano = static_cast<int>(pj.inteligencia * 1.4f) + pj.armaEquipada.poder;
             aplicarDanoSeguro(m, calcularDanoReal(dano, m.defensa));
             std::cout << "[HABILIDAD] " << hab.nombre << " inflige " << dano << " de dano.\n";
-            if (auto ef = obtenerEfectoPorId(1)) ef->aplicar(m.hp, m.hpMax, turnoPerdido);
+            aplicarEstado(1);
             break;
 
         case 112: // Bola de Escarcha
-            dano = pj.inteligencia + static_cast<int>(pj.inteligencia * 1.4);
+            dano = static_cast<int>(pj.inteligencia * 1.4f) + pj.armaEquipada.poder;
             aplicarDanoSeguro(m, calcularDanoReal(dano, m.defensa));
             std::cout << "[HABILIDAD] " << hab.nombre << " inflige " << dano << " de dano.\n";
-            if (auto ef = obtenerEfectoPorId(6)) ef->aplicar(m.hp, m.hpMax, turnoPerdido);
+            aplicarEstado(6);
             break;
 
         case 113: // Rayo Arcano
-            dano = pj.inteligencia + static_cast<int>(pj.inteligencia * 1.4);
+            dano = static_cast<int>(pj.inteligencia * 1.4f) + pj.armaEquipada.poder;
             aplicarDanoSeguro(m, calcularDanoReal(dano, m.defensa));
             std::cout << "[HABILIDAD] " << hab.nombre << " inflige " << dano << " de dano.\n";
-            if (auto ef = obtenerEfectoPorId(7)) ef->aplicar(m.hp, m.hpMax, turnoPerdido);
+            aplicarEstado(7);
             break;
 
-        // -----------------------------------------------
-        // CAZADOR — ACTIVAS NIVEL 10
-        // -----------------------------------------------
-
+        // --- CAZADOR (Nivel 10) ---
         case 121: // Flecha Venenosa
-            dano = pj.destreza + static_cast<int>(pj.destreza * 1.4);
+            dano = static_cast<int>(pj.destreza * 1.4f) + pj.armaEquipada.poder;
             aplicarDanoSeguro(m, calcularDanoReal(dano, m.defensa));
             std::cout << "[HABILIDAD] " << hab.nombre << " inflige " << dano << " de dano.\n";
-            if (auto ef = obtenerEfectoPorId(2)) ef->aplicar(m.hp, m.hpMax, turnoPerdido);
+            aplicarEstado(2);
             break;
 
         case 122: // Disparo Preciso
-            dano = pj.ataqueBase + static_cast<int>(pj.destreza * 1.5);
+            dano = static_cast<int>((pj.ataqueBase + pj.destreza + pj.armaEquipada.poder) * 1.5f);
             aplicarDanoSeguro(m, calcularDanoReal(dano, m.defensa));
             std::cout << "[HABILIDAD] " << hab.nombre << " inflige un golpe critico de " << dano << " de dano.\n";
             break;
@@ -128,14 +120,15 @@ void ejecutarHabilidad(Personaje &pj, Monstruo &m, int idHabilidad) {
             int danoTotal = 0;
             for (int i = 0; i < impactos; i++) {
                 if (m.hp <= 0) break;
-                int golpe = static_cast<int>(pj.destreza * 1.4);
+                int golpe = static_cast<int>(pj.destreza * 1.4f);
+                if (i == 0) golpe += pj.armaEquipada.poder;
                 int danoReal = calcularDanoReal(golpe, m.defensa);
                 aplicarDanoSeguro(m, danoReal);
                 danoTotal += danoReal;
             }
             std::cout << "[HABILIDAD] " << hab.nombre << " lanza " << impactos
                       << " flechas e inflige un total de " << danoTotal << " de dano.\n";
-            if (auto ef = obtenerEfectoPorId(3)) ef->aplicar(m.hp, m.hpMax, turnoPerdido);
+            aplicarEstado(3);
         }
             break;
 
@@ -205,7 +198,7 @@ void aplicarSubclase(Personaje &pj, int idHabilidad) {
 }
 
 // ============================================
-// ULTIMATES NIVEL 20 (una sola vez por encuentro)
+// ULTIMATES NIVEL 20
 // ============================================
 int obtenerUltimateIdDePersonaje(const Personaje &pj) {
     for (int id : pj.habilidadesIds) {
@@ -216,9 +209,11 @@ int obtenerUltimateIdDePersonaje(const Personaje &pj) {
 
 bool puedeUsarUltimate(const Personaje &pj) {
     if (!pj.tieneUltimate20) return false;
-    if (pj.ultimateUsada)    return false; // Bloquea si ya se uso en este encuentro
-    if (obtenerUltimateIdDePersonaje(pj) == -1) return false;
-    if (pj.recursoActual <= 0) return false;
+    if (pj.ultimateUsada)    return false;
+    const int idUltimate = obtenerUltimateIdDePersonaje(pj);
+    if (idUltimate == -1) return false;
+    if (pj.recursoActual < pj.recursoMax) return false;
+    if (idUltimate == 331 && !pj.ultimoTurnoAtaco) return false;
     return true;
 }
 
@@ -229,15 +224,12 @@ void ejecutarUltimate(Personaje &pj, Monstruo &m, int idHabilidad) {
 
     switch (hab.id) {
 
-        // -----------------------------------------------
-        // GUERRERO — ULTIMATES NIVEL 20
-        // -----------------------------------------------
-
-        case 311: // Ira del Cielo (Ultimate de Paladín)
+        // --- GUERRERO (Ultimates Nivel 20) ---
+        case 311: // Ira del Cielo (Paladín)
         {
             std::cout << "\n[ULTIMATE] ¡Invocas la ira de los cielos sobre " << m.nombre << "!\n";
 
-            int danoBase = static_cast<int>((pj.fuerza * 2.0) + (pj.vitalidad * 1.5)) + pj.ataqueBase;
+            int danoBase = static_cast<int>((pj.fuerza * 2.0f) + (pj.vitalidad * 1.5f)) + pj.ataqueBase + pj.armaEquipada.poder;
             int danoReal = calcularDanoReal(danoBase, m.defensa);
             aplicarDanoSeguro(m, danoReal);
 
@@ -247,22 +239,22 @@ void ejecutarUltimate(Personaje &pj, Monstruo &m, int idHabilidad) {
             pj.hp = std::min(pj.hpMax, pj.hp + curacion);
             std::cout << " [CURACIÓN] La bendición divina restaura " << curacion << " HP de tu salud.\n";
 
-            auto efParalisis = obtenerEfectoPorId(4);
-            if (efParalisis) {
-                m.efectosActivos.push_back(*efParalisis);
+            if (auto efParalisis = obtenerEfectoPorId(4)) {
+                agregarEfectoActivo(m.efectosActivos, *efParalisis);
                 std::cout << " [ESTADO] ¡El impacto sagrado deja paralizado al enemigo!\n";
             }
         }
             break;
 
-        case 312: // Última Bestia (Ultimate de Berserker)
+        case 312: // Última Bestia (Berserker)
         {
             std::cout << "\n[ULTIMATE] ¡Entras en un frenesí bestial incontrolable y descargas una furia implacable!\n";
 
             int totalDano = 0;
             for (int i = 1; i <= 4; ++i) {
                 if (m.hp <= 0) break;
-                int danoGolpe = static_cast<int>(pj.fuerza * 0.8) + (pj.ataqueBase / 2);
+                int danoGolpe = static_cast<int>(pj.fuerza * 0.8f) + (pj.ataqueBase / 2);
+                if (i == 1) danoGolpe += pj.armaEquipada.poder;
                 int danoRealGolpe = calcularDanoReal(danoGolpe, m.defensa, true);
                 aplicarDanoSeguro(m, danoRealGolpe);
                 totalDano += danoRealGolpe;
@@ -275,7 +267,6 @@ void ejecutarUltimate(Personaje &pj, Monstruo &m, int idHabilidad) {
                 int reduccionDef = static_cast<int>(m.defensa * 0.40);
                 m.defensa = std::max(0, m.defensa - reduccionDef);
                 m.turnosDebuffDefensa = 2;
-
                 std::cout << " [RUPTURA] ¡La brutalidad del ataque redujo la armadura de " << m.nombre << " en " << reduccionDef << " puntos!\n";
             } else {
                 std::cout << " [EJECUCIÓN] ¡Tu furia destrozó por completo al enemigo en el acto!\n";
@@ -283,22 +274,18 @@ void ejecutarUltimate(Personaje &pj, Monstruo &m, int idHabilidad) {
         }
             break;
 
-        // -----------------------------------------------
-        // MAGO — ULTIMATES NIVEL 20
-        // -----------------------------------------------
-
-        case 321: // Colapso Solar (Ultimate de Mago Fuego)
+        // --- MAGO (Ultimates Nivel 20) ---
+        case 321: // Colapso Solar (Mago Fuego)
         {
             std::cout << "\n[ULTIMATE] ¡Canalizas el poder del sol y desatas un colapso cataclísmico sobre " << m.nombre << "!\n";
 
-            int danoBase = static_cast<int>(pj.inteligencia * 3.5);
+            int danoBase = static_cast<int>(pj.inteligencia * 3.5f) + pj.armaEquipada.poder;
             int danoReal = calcularDanoReal(danoBase, m.defensa);
             aplicarDanoSeguro(m, danoReal);
             std::cout << " [FUEGO] ¡Una implosión solar calcina al enemigo causando " << danoReal << " de daño masivo!\n";
 
-            auto efQuemadura = obtenerEfectoPorId(1);
-            if (efQuemadura) {
-                m.efectosActivos.push_back(*efQuemadura);
+            if (auto efQuemadura = obtenerEfectoPorId(1)) {
+                agregarEfectoActivo(m.efectosActivos, *efQuemadura);
                 std::cout << " [ESTADO] ¡El objetivo queda envuelto en llamas inextinguibles!\n";
             }
 
@@ -307,11 +294,11 @@ void ejecutarUltimate(Personaje &pj, Monstruo &m, int idHabilidad) {
         }
             break;
 
-        case 322: // Absoluto Cero (Ultimate de Mago Hielo)
+        case 322: // Absoluto Cero (Mago Hielo)
         {
             std::cout << "\n[ULTIMATE] ¡La temperatura desciende al cero absoluto, congelando el tiempo y el espacio en torno a " << m.nombre << "!\n";
 
-            int danoBase = static_cast<int>(pj.inteligencia * 2.8);
+            int danoBase = static_cast<int>(pj.inteligencia * 2.8f) + pj.armaEquipada.poder;
 
             bool yaCongelado = false;
             for (const auto &ef : m.efectosActivos) {
@@ -327,9 +314,8 @@ void ejecutarUltimate(Personaje &pj, Monstruo &m, int idHabilidad) {
             aplicarDanoSeguro(m, danoReal);
             std::cout << " [HIELO] ¡Una ráfaga glacial fractura al enemigo infligiendo " << danoReal << " de daño!\n";
 
-            auto efCongelacion = obtenerEfectoPorId(6);
-            if (efCongelacion) {
-                m.efectosActivos.push_back(*efCongelacion);
+            if (auto efCongelacion = obtenerEfectoPorId(6)) {
+                agregarEfectoActivo(m.efectosActivos, *efCongelacion);
                 std::cout << " [ESTADO] ¡El enemigo queda totalmente congelado en un bloque de hielo!\n";
             }
 
@@ -338,33 +324,30 @@ void ejecutarUltimate(Personaje &pj, Monstruo &m, int idHabilidad) {
         }
             break;
 
-        // -----------------------------------------------
-        // CAZADOR — ULTIMATES NIVEL 20
-        // -----------------------------------------------
-
-        case 331: // Flecha del Juicio Final (Ultimate de Puntería)
+        // --- CAZADOR (Ultimates Nivel 20) ---
+        case 331: // Flecha del Juicio Final (Puntería)
         {
             if (!pj.ultimoTurnoAtaco) {
                 std::cout << "\n[ULTIMATE] Necesitas haber atacado con tu ataque basico el turno "
-                           "inmediatamente anterior para tensar tu arco al maximo. "
-                           "No se cumple la condicion; la ultimate no se activa.\n";
-                return; // No se marca como usada: no se gasta recurso si falla el requisito
+                             "inmediatamente anterior para tensar tu arco al maximo. "
+                             "No se cumple la condicion; la ultimate no se activa.\n";
+                return;
             }
 
             std::cout << "\n[ULTIMATE] ¡Tensas tu arco al límite absoluto concentrando toda tu puntería en " << m.nombre << "!\n";
 
-            int danoBase = static_cast<int>(pj.destreza * 3.2) + pj.ataqueBase;
-            int danoReal = calcularDanoReal(danoBase, 0); // Ignora defensa por completo
+            int danoBase = static_cast<int>(pj.destreza * 3.2f) + pj.ataqueBase + pj.armaEquipada.poder;
+            int danoReal = calcularDanoReal(danoBase, 0); // Ignora armadura por completo
             aplicarDanoSeguro(m, danoReal);
             std::cout << " [CRÍTICO LETAL] ¡La flecha atraviesa cualquier armadura infligiendo " << danoReal << " de daño puro!\n";
         }
             break;
 
-        case 332: // Pacto de Sangre (Ultimate de Bestias)
+        case 332: // Pacto de Sangre (Bestias)
         {
             std::cout << "\n[ULTIMATE] ¡Un silbido rasga el aire y convoca a tus tres bestias compañeras a la batalla!\n";
 
-            int danoOso = static_cast<int>(pj.destreza * 1.5) + pj.ataqueBase;
+            int danoOso = static_cast<int>(pj.destreza * 1.5f) + pj.ataqueBase + pj.armaEquipada.poder;
             int danoRealOso = calcularDanoReal(danoOso, m.defensa);
             aplicarDanoSeguro(m, danoRealOso);
             std::cout << " -> [EL OSO] Carga con fuerza bruta e inflige " << danoRealOso << " de daño.\n";
@@ -375,9 +358,8 @@ void ejecutarUltimate(Personaje &pj, Monstruo &m, int idHabilidad) {
                 aplicarDanoSeguro(m, danoRealLobo);
                 std::cout << " -> [EL LOBO] Salta y desgarra, infligiendo " << danoRealLobo << " de daño.\n";
 
-                auto efSangrado = obtenerEfectoPorId(3);
-                if (efSangrado) {
-                    m.efectosActivos.push_back(*efSangrado);
+                if (auto efSangrado = obtenerEfectoPorId(3)) {
+                    agregarEfectoActivo(m.efectosActivos, *efSangrado);
                     std::cout << " [ESTADO] ¡El objetivo comienza a sangrar severamente!\n";
                 }
             }
@@ -388,9 +370,8 @@ void ejecutarUltimate(Personaje &pj, Monstruo &m, int idHabilidad) {
                 aplicarDanoSeguro(m, danoRealLeon);
                 std::cout << " -> [EL LEÓN] Muerde letalmente causando " << danoRealLeon << " de daño.\n";
 
-                auto efVeneno = obtenerEfectoPorId(2);
-                if (efVeneno) {
-                    m.efectosActivos.push_back(*efVeneno);
+                if (auto efVeneno = obtenerEfectoPorId(2)) {
+                    agregarEfectoActivo(m.efectosActivos, *efVeneno);
                     std::cout << " [ESTADO] ¡El veneno de las bestias inunda las venas del enemigo!\n";
                 }
             }
@@ -405,25 +386,23 @@ void ejecutarUltimate(Personaje &pj, Monstruo &m, int idHabilidad) {
             return; 
     }
 
-    // Se marca como usada solo para este encuentro (recuerda poner pj.ultimateUsada = false al iniciar un nuevo combate)
     pj.ultimateUsada = true;
 }
 
 // ============================================
-// BLOQUE: HABILIDADES DE OBJETOS / ARMAS ELITE
+// HABILIDADES DE ARMAS ELITE
 // ============================================
-
 void aplicarGritoDelCaido(Monstruo& m, Personaje& /*p*/) {
-    std::cout << "[ESPECTRO] De tu arma surge un espectro que lanza un grito desgarrador!" << std::endl;
+    std::cout << "[ESPECTRO] De tu arma surge un espectro que lanza un grito desgarrador!\n";
 
     int dano = std::max(1, static_cast<int>(static_cast<float>(m.hp) * 0.05f));
     aplicarDanoSeguro(m, dano);
-    std::cout << "[ESPECTRO] El grito arranca " << dano << " HP de " << m.nombre << "!" << std::endl;
+    std::cout << "[ESPECTRO] El grito arranca " << dano << " HP de " << m.nombre << "!\n";
 
     if (Rng::get().entre(1, 100) <= 40) {
         if (auto ef = obtenerEfectoPorId(4)) {
-            m.efectosActivos.push_back(*ef);
-            std::cout << "[ESPECTRO] " << m.nombre << " queda paralizado por el terror!" << std::endl;
+            agregarEfectoActivo(m.efectosActivos, *ef);
+            std::cout << "[ESPECTRO] " << m.nombre << " queda paralizado por el terror!\n";
         }
     }
 }

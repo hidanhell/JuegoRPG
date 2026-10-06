@@ -63,6 +63,8 @@
     "/^powershell -Command \"Get-Content Motor\\.cpp \\| Select-Object -Skip 167 -First 1 \\| ForEach-Object \\{ Write-Host \\$_ \\}\"$/": {
       "approve": true,
       "matchCommandLine": true
-    }
+    },
+    "g++": true,
+    "/tmp/juegorp_class_skill_test": true
   }
 }

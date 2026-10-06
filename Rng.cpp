@@ -18,13 +18,17 @@ public:
     }
 };
 
-static RngSistema defaultRng;
-static IAleatorio* instanciaActual = &defaultRng;
+static RngSistema& obtenerRngPorDefecto() {
+    static RngSistema defaultRng;
+    return defaultRng;
+}
+
+static IAleatorio* instanciaActual = nullptr;
 
 IAleatorio& Rng::get() {
-    return *instanciaActual;
+    return instanciaActual != nullptr ? *instanciaActual : obtenerRngPorDefecto();
 }
 
 void Rng::establecer(IAleatorio* instancia) {
-    instanciaActual = (instancia != nullptr) ? instancia : &defaultRng;
+    instanciaActual = instancia;
 }

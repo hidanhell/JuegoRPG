@@ -1,10 +1,9 @@
-#include "monstruos.h"
+#include "Monstruos.h"
 #include "HabilidadesMonstruo.h"
 #include <vector>
-#include <ctime>
 #include "Rng.h"
 #include <iostream>
-#include <algorithm> // Para usar std::max y std::min si fuera necesario
+#include <algorithm>
 
 using namespace std;
 
@@ -27,6 +26,7 @@ static const Naturaleza listaNaturalezas[5] = {
     {"Sabio",   1.10f, 0.90f, "INT", "STR"},
     {"Salvaje", 1.10f, 0.90f, "STR", "INT"}
 };
+static constexpr int INDICE_NATURALEZA_ROBUSTO = 1;
 
 void aplicarNaturaleza(Monstruo &m, const Naturaleza &n) {
     if (n.statSube == "ATQ") m.ataque       = static_cast<int>(static_cast<float>(m.ataque)       * n.multSube);
@@ -41,7 +41,13 @@ void aplicarNaturaleza(Monstruo &m, const Naturaleza &n) {
     if (n.statBaja == "STR") m.fuerza       = static_cast<int>(static_cast<float>(m.fuerza)       * n.multBaja);
     if (n.statBaja == "INT") m.inteligencia = static_cast<int>(static_cast<float>(m.inteligencia) * n.multBaja);
 
+    // STR e INT determinan el ataque derivado, así que hay que recalcularlo tras modificarlos.
+    if (n.statSube == "STR" || n.statSube == "INT" || n.statBaja == "STR" || n.statBaja == "INT") {
+        m.ataque = std::max(m.fuerza, m.inteligencia) * 2;
+    }
+
     m.naturaleza = n.nombre;
+    m.defensaOriginal = m.defensa;
 }
 
 // =========================================================
@@ -90,13 +96,14 @@ Monstruo construirMonstruo(PlantillaMonstruo p, int zona, int nivelFijo = -1) {
     m.vitalidad    = vit;
     m.esElite      = p.esElite; // Propagamos el flag de elite al monstruo
 
-    // Naturaleza aleatoria (Lancelot tiene naturaleza Divina fija)
-    if (!p.esJefe) {
+    // Valdrame conserva una naturaleza fija; los demás enemigos no jefe, incluidos los élites, varían.
+    if (p.nombre == "ARZOBISPO VALDRAME") {
+        aplicarNaturaleza(m, listaNaturalezas[INDICE_NATURALEZA_ROBUSTO]);
+    } else if (!p.esJefe) {
         aplicarNaturaleza(m, listaNaturalezas[Rng::get().entre(0, 4)]);
     } else {
         m.naturaleza = "Divina";
     }
-    // Los Elites no tienen naturaleza — son unicos y sus stats son fijos por diseño
 
     // Habilidades segun rareza y tipo
     asignarHabilidadesMonstruo(m);

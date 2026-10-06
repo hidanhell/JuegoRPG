@@ -28,6 +28,8 @@ struct Monstruo {
     int defensaOriginal;     // Guarda la defensa base para restaurarla al expirar debuffs
     int velocidad;
     int expAlMorir;
+    int bonusAtaqueBuff;
+    int turnosBuffAtaque;
 
     // --- Debuffs temporales ---
     int turnosDebuffDefensa; // Ultima Bestia (312): cuantos turnos queda la armadura rota
@@ -43,7 +45,7 @@ struct Monstruo {
           esRaro(raro), esElite(false), esJefe(jefe),
           fuerza(a/2), destreza(v/3), inteligencia(0), vitalidad(h/10), 
           hp(h), hpMax(h), ataque(a), defensa(d), defensaOriginal(d),
-          velocidad(v), expAlMorir(exp),
+          velocidad(v), expAlMorir(exp), bonusAtaqueBuff(0), turnosBuffAtaque(0),
           turnosDebuffDefensa(0) {}
 
     void mostrarInfo() const;

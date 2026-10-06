@@ -1,4 +1,4 @@
-#include "personajes.h"
+#include "Personajes.h"
 #include <iostream>
 #include <algorithm>
 #include <limits>
@@ -73,37 +73,95 @@ bool Personaje::tieneReliquia(const string &r) {
 
 // Sistema de autopociones v2.1 (Limpieza de warnings de tipos)
 void Personaje::usarPocionAuto() {
-    if (inventario.empty()) return;
+    if (hp <= 0 || inventario.empty()) return;
     int idx = -1;
 
-    // Buscamos la mejor poción según el estado de salud
-    for(size_t i = 0; i < inventario.size(); i++) {
-        if (inventario[i].id < 10) {
-            // Se usa static_cast para comparar tipos de forma segura
-            // 1. Emergencia crítica: Poción de Dragón (ID 4) si estás por debajo del 20%
-            if (hp < static_cast<int>(hpMax * 0.20) && inventario[i].id == 4) { idx = static_cast<int>(i); break; }
-            
-            // 2. Daño grave: Poción Alta (ID 3) si estás por debajo del 35%
-            if (hp < static_cast<int>(hpMax * 0.35) && inventario[i].id == 3) { idx = static_cast<int>(i); break; }
-            
-            // 3. Daño moderado: Poción Media (ID 2) si estás por debajo del 60%
-            if (hp < static_cast<int>(hpMax * 0.60) && inventario[i].id == 2) { idx = static_cast<int>(i); break; }
-            
-            // 4. Desgaste leve: Poción Baja (ID 1) si estás por debajo del 85%
-            if (hp < static_cast<int>(hpMax * 0.85) && inventario[i].id == 1) { idx = static_cast<int>(i); break; }
+    const int idsPrioridad[] = {4, 3, 2, 1};
+    const int umbralesHP[] = {20, 35, 60, 85};
+
+    for (size_t prioridad = 0; prioridad < 4 && idx == -1; ++prioridad) {
+        const int umbral = static_cast<int>(hpMax * (umbralesHP[prioridad] / 100.0));
+        if (hp >= umbral) continue;
+
+        for (size_t i = 0; i < inventario.size(); ++i) {
+            if (inventario[i].id == idsPrioridad[prioridad]) {
+                idx = static_cast<int>(i);
+                break;
+            }
         }
     }
 
     if (idx != -1) {
-        Consumible& p = inventario[static_cast<size_t>(idx)];
-        int heal = p.curacion;
-        if (p.id == 4) heal = hpMax;
-
-        hp = min(hpMax, hp + heal);
-        cout << "\n[SISTEMA] Uso automatico de " << p.nombre << "! Recuperaste " << heal << " HP." << endl;
+        const Consumible pocion = inventario[static_cast<size_t>(idx)];
+        const int hpAntes = hp;
+        const int curacion = (pocion.id == 4) ? hpMax : pocion.curacion;
+        hp = min(hpMax, hp + curacion);
+        cout << "\n[SISTEMA] Uso automatico de " << pocion.nombre << "! Recuperaste " << (hp - hpAntes) << " HP." << endl;
         cout << "[SISTEMA] HP actual: " << hp << "/" << hpMax << endl;
         inventario.erase(inventario.begin() + idx);
+        return;
     }
+
+    if (hp <= 0) return;
+
+    const bool ataqueBuffeado = any_of(buffsActivos.begin(), buffsActivos.end(), [](const BuffActivo& buff) {
+        return buff.bonusAtaque > 0;
+    });
+    const bool defensaBuffeada = any_of(buffsActivos.begin(), buffsActivos.end(), [](const BuffActivo& buff) {
+        return buff.bonusDefensa > 0;
+    });
+    const bool velocidadBuffeada = any_of(buffsActivos.begin(), buffsActivos.end(), [](const BuffActivo& buff) {
+        return buff.bonusVelocidad > 0;
+    });
+
+    int mejorPuntaje = 0;
+    int indiceElixir = -1;
+    for (size_t i = 0; i < inventario.size(); ++i) {
+        const Consumible& elixir = inventario[i];
+        if (elixir.id < 10 || elixir.id > 19) continue;
+
+        int puntaje = min(elixir.curacion, max(0, hpMax - hp));
+        if (!ataqueBuffeado) puntaje += elixir.buffAtaque * max(1, elixir.duracion);
+        if (!defensaBuffeada) puntaje += elixir.buffDefensa * max(1, elixir.duracion);
+        if (!velocidadBuffeada) puntaje += elixir.buffVelocidad * max(1, elixir.duracion);
+
+        if (puntaje > mejorPuntaje) {
+            mejorPuntaje = puntaje;
+            indiceElixir = static_cast<int>(i);
+        }
+    }
+
+    if (indiceElixir == -1) return;
+
+    Consumible elixir = inventario[static_cast<size_t>(indiceElixir)];
+    if (ataqueBuffeado) elixir.buffAtaque = 0;
+    if (defensaBuffeada) elixir.buffDefensa = 0;
+    if (velocidadBuffeada) elixir.buffVelocidad = 0;
+
+    if (elixir.curacion > 0) {
+        const int hpAntes = hp;
+        hp = min(hpMax, hp + elixir.curacion);
+        cout << "\n[SISTEMA] Uso automatico de " << elixir.nombre << "! Recuperaste " << (hp - hpAntes) << " HP." << endl;
+    }
+
+    if (elixir.buffAtaque > 0 || elixir.buffDefensa > 0 || elixir.buffVelocidad > 0) {
+        ataqueBase += elixir.buffAtaque;
+        defensaBase += elixir.buffDefensa;
+        velocidadBase += elixir.buffVelocidad;
+
+        BuffActivo buff;
+        buff.nombre = elixir.nombre;
+        buff.bonusAtaque = elixir.buffAtaque;
+        buff.bonusDefensa = elixir.buffDefensa;
+        buff.bonusVelocidad = elixir.buffVelocidad;
+        buff.duracion = max(1, elixir.duracion);
+        buffsActivos.push_back(buff);
+
+        cout << "[BUFF] " << elixir.nombre << " activo por " << buff.duracion << " turno(s). "
+             << "ATQ:" << ataqueBase << " DEF:" << defensaBase << " VEL:" << velocidadBase << endl;
+    }
+
+    inventario.erase(inventario.begin() + indiceElixir);
 }
 
 // Función para subir de nivel con crecimiento diferenciado
@@ -176,9 +234,8 @@ void Personaje::subirNivel() {
                 ataqueBase += 5;
             } else if (eleccion == 3) {
                 habilidadesIds.push_back(3);
-                vitalidad += 5;
-                hpMax= 50 + (vitalidad * 5); // Recalcular HP Max con el nuevo bono de vitalidad
-                hp = hpMax; // Curar al subir de nivel para sentir el poder de la clase
+                hpMax += 20;
+                hp = hpMax;
             }
 
             cout << "---Has desbloqueado la habilidad:--- " 
@@ -202,7 +259,7 @@ void Personaje::subirNivel() {
             cout << "Debes elegir tu nueva habilidad activa:\n";
             cout << "1. Embate con Escudo (dano + paralisis)\n";
             cout << "2. Tajo Sangriento (dano + sangrado)\n";
-            cout << "3. Frenesi (multi-hit + sangrado, pero paralisis al usuario)\n";
+            cout << "3. Frenesi (multi-hit + sangrado)\n";
             cout << "Elige (1-3): ";
 
             int eleccion; cin >> eleccion;
@@ -222,8 +279,8 @@ void Personaje::subirNivel() {
 if (nivel >= 15 && clase == Clase::Guerrero && !tieneSubclase15) {
     cout << "\nHas alcanzado el nivel 15. Tu camino se define..." << endl;
     cout << "Debes elegir tu subclase:\n";
-    cout << "1. Paladin (+25% defensa, +25% vitalidad)\n";
-    cout << "2. Berserker (+40% fuerza, +40% velocidad, Dano x2 pero SIN ESCUDO)\n";
+    cout << "1. Paladin (+40% defensa, +40% vitalidad)\n";
+    cout << "2. Berserker (+40% ataque, +40% velocidad, sin artefacto)\n";
     cout << "Elige (1-2): ";
 
     int eleccion; cin >> eleccion;
@@ -266,18 +323,14 @@ if (nivel >= 15 && clase == Clase::Guerrero && !tieneSubclase15) {
             }
 
             if (esPaladin) {
-                // IRA DEL CIELO: Dano = defensaBase*2.5 + ataqueBase
-                // Paralisis garantizada 2 turnos + autocura 15% hpMax
+                // Ira del Cielo: daño basado en fuerza, vitalidad y ataque; cura 25% de HP máximo.
                 cout << "Como PALADIN, desbloqueas IRA DEL CIELO:\n";
-                cout << "Golpe sagrado devastador. Paralisis garantizada 2 turnos. Te curas 15% HP.\n";
+                cout << "Golpe sagrado, parálisis de 2 turnos con 30% de probabilidad de perder acción por turno y cura de 25% HP.\n";
                 habilidadesIds.push_back(311);
             } else {
-                // ULTIMA BESTIA: ataqueBase*1.8 por golpe, 6-9 golpes aleatorios
-                // Si mata -> recuperas el 10% HP de autodano
-                // Si NO mata -> pierdes 10% HP propio + enemigo pierde 40% defensa por 2 turnos
+                // Última Bestia: cuatro golpes; si el enemigo sobrevive, reduce su defensa 40% durante dos turnos.
                 cout << "Como BERSERKER, desbloqueas ULTIMA BESTIA:\n";
-                cout << "Frenesi de 6 a 9 golpes devastadores.\n";
-                cout << "Si mata: recuperas 10% HP. Si no mata: pierdes 10% HP y rompes la armadura enemiga -40% por 2 turnos.\n";
+                cout << "Frenesi de cuatro golpes. Si el enemigo sobrevive, reduces su defensa 40% durante 2 turnos.\n";
                 habilidadesIds.push_back(312);
             }
 
@@ -356,8 +409,8 @@ if (nivel >= 15 && clase == Clase::Guerrero && !tieneSubclase15) {
         if (nivel >= 15 && clase == Clase::Mago && !tieneSubclase15) {
             cout << "\nHas alcanzado el nivel 15. Tu camino se define..." << endl;
             cout << "Debes elegir tu subclase:\n";
-            cout << "1. Fuego (+25% intelecto, +25% vitalidad)\n";
-            cout << "2. Hielo (+25% intelecto, +25% defensa)\n";
+            cout << "1. Fuego (+35% intelecto, +35% vitalidad)\n";
+            cout << "2. Hielo (+35% intelecto, +35% defensa)\n";
             cout << "Elige (1-2): ";
 
             int eleccion; cin >> eleccion;
@@ -396,10 +449,9 @@ if (nivel >= 15 && clase == Clase::Guerrero && !tieneSubclase15) {
                 cout << "ADVERTENCIA: Te deja agotado 1 turno. No podras usar habilidades ese turno.\n";
                 habilidadesIds.push_back(321);
             } else {
-                // ABSOLUTO CERO: Dano = inteligencia*2.0 (x2 si enemigo ya congelado)
-                // Congelacion garantizada 3 turnos + reduce ATQ enemigo -30% mientras dure
+                // Absoluto Cero duplica el daño si el objetivo ya está congelado y reduce su ataque 20%.
                 cout << "Como MAGO DE HIELO, desbloqueas ABSOLUTO CERO:\n";
-                cout << "El tiempo se detiene. Congelacion garantizada 3 turnos y -30% ATQ enemigo.\n";
+                cout << "El tiempo se detiene. Congelación por 2 turnos (40% de perder acción por turno) y -20% ATQ enemigo.\n";
                 cout << "COMBO: Si el enemigo ya esta congelado, el dano se DUPLICA.\n";
                 habilidadesIds.push_back(322);
             }
@@ -478,8 +530,8 @@ if (nivel >= 15 && clase == Clase::Guerrero && !tieneSubclase15) {
         if (nivel >= 15 && clase == Clase::Cazador && !tieneSubclase15) {
             cout << "\nHas alcanzado el nivel 15. Tu camino se define..." << endl;
             cout << "Debes elegir tu subclase:\n";
-            cout << "1. Punteria (+25% destreza, +25% velocidad)\n";
-            cout << "2. Bestias (+25% destreza, +25% defensa)\n";
+            cout << "1. Punteria (+40% destreza, +40% velocidad)\n";
+            cout << "2. Bestias (+35% destreza, +35% vitalidad)\n";
             cout << "Elige (1-2): ";
 
             int eleccion; cin >> eleccion;

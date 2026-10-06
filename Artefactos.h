@@ -4,13 +4,13 @@
 
 // --- Artefacto ---
 struct Artefacto {
-    int id;                 // Identificador unico
+    int id;                 // Identificador único
     std::string nombre;     // Nombre del artefacto
     int defensa;            // Valor de defensa
-    Rareza rareza;          // Rareza (Comun, Raro, etc.)
+    Rareza rareza;          // Rareza (Común, Raro, etc.)
     int efectoId;           // ID del efecto especial (1=Quemadura, 2=Veneno, etc.)
     Clase clase;            // Clase que lo puede usar (Guerrero, Mago, Cazador)
-    int zona;               // Zona de aparicion (1-4)
+    int zona;               // Zona de aparición (1-4)
     int precio;             // Costo en la tienda
 
     // Constructor por defecto
@@ -19,12 +19,11 @@ struct Artefacto {
           rareza(Rareza::Comun), efectoId(0),
           clase(Clase::Ninguno), zona(0), precio(0) {}
 
-    // Constructor con parametros
-    // Usa const& en strings para evitar copias innecesarias
+    // Constructor con parámetros
     Artefacto(int i, const std::string& n, int d,
               const std::string& r, int e,
               const std::string& c, int z, int pr);
 
-    // Metodo para mostrar informacion
+    // Método para mostrar información
     void mostrarInfo() const;
 };

@@ -19,7 +19,13 @@ struct Reliquia {
     void mostrarInfo() const;
 };
 
+struct Personaje;
+
 // Catálogo global de reliquias (definido en reliquiasDatos.cpp)
 extern std::vector<Reliquia> listaReliquias;
+
+bool reliquiaCompatibleConClase(const Reliquia& reliquia, Clase clase);
+bool aplicarBonosReliquia(Personaje& personaje, const Reliquia& reliquia);
+void retirarBonosReliquia(Personaje& personaje, const Reliquia& reliquia);
 
 #endif

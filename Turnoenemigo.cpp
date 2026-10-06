@@ -27,6 +27,7 @@ extern void aplicarEfectoLegendario(const Efecto &efecto, int &hpObjetivo, int a
 bool turnoEnemigo(Personaje &p, Monstruo &m, bool faseValdrame2, bool fase3Lancelot) {
     bool usoHabilidad = false;
     bool monstruoHuyo = false;
+    const bool buffAtaqueActivoAlInicio = m.turnosBuffAtaque > 0;
 
     if (!m.esJefe && (m.esRaro || m.esElite) && !m.habilidadesIds.empty()) {
         if (m.nombre == "ARZOBISPO VALDRAME") {
@@ -140,12 +141,21 @@ bool turnoEnemigo(Personaje &p, Monstruo &m, bool faseValdrame2, bool fase3Lance
                 // mecanismo nuevo de "perder turno" que no existe hoy.
                 for (auto &e : listaEfectos) {
                     if (e.id == 4) {
-                        p.efectos.push_back(e);
+                        agregarEfectoActivo(p.efectos, e);
                         cout << "[PELIGRO] El Caos te paraliza momentaneamente!" << endl;
                         break;
                     }
                 }
             }
+        }
+    }
+
+    if (buffAtaqueActivoAlInicio && m.turnosBuffAtaque > 0) {
+        m.turnosBuffAtaque--;
+        if (m.turnosBuffAtaque == 0) {
+            m.ataque -= m.bonusAtaqueBuff;
+            m.bonusAtaqueBuff = 0;
+            cout << "[BUFF] El ataque de " << m.nombre << " vuelve a la normalidad." << endl;
         }
     }
 

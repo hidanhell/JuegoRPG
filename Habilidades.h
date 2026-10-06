@@ -8,9 +8,9 @@
 #include "Monstruos.h"
 #include "Efectos.h"
 
-// ==========================
+// =========================================================
 // ESTRUCTURA DE HABILIDAD
-// ==========================
+// =========================================================
 struct Habilidad {
     int id;
     std::string nombre;
@@ -21,25 +21,28 @@ struct Habilidad {
     int efectoId;       // ID del efecto en listaEfectos (0 si no aplica)
 };
 
-// ==========================
-// CATÁLOGO GLOBAL
-// ==========================
+// Catálogo global de habilidades
 extern std::vector<Habilidad> listaHabilidadesGlobal;
 
-// ==========================
-// FUNCIONES
-// ==========================
-
-// Buscar habilidad por ID. Devuelve std::nullopt si no existe.
+// =========================================================
+// CONSULTAS Y EJECUCIÓN GENERAL
+// =========================================================
 std::optional<Habilidad> obtenerHabilidadPorId(int id);
 
-// Ejecutar habilidad activa en combate
+// Ejecución de habilidades activas y pasivas de subclase
 void ejecutarHabilidad(Personaje &pj, Monstruo &m, int idHabilidad);
 void aplicarSubclase(Personaje &pj, int idHabilidad);
 
-// ==========================
-// HABILIDADES DE ARMAS ELITE
-// ==========================
-void aplicarGritoDelCaido(Monstruo& m, Personaje& p);
+// =========================================================
+// ULTIMATES NIVEL 20
+// =========================================================
+int obtenerUltimateIdDePersonaje(const Personaje &pj);
+bool puedeUsarUltimate(const Personaje &pj);
+void ejecutarUltimate(Personaje &pj, Monstruo &m, int idHabilidad);
 
-#endif
+// =========================================================
+// HABILIDADES DE ARMAS ELITE
+// =========================================================
+void aplicarGritoDelCaido(Monstruo &m, Personaje &p);
+
+#endif // HABILIDADES_H

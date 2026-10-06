@@ -68,18 +68,28 @@ Cada clase tiene su propio árbol de habilidades con desbloqueos en nivel 5, 10 
 
 ### Requisitos
 - Compilador C++17 o superior (g++ recomendado)
+- En Linux, GNU Make y g++
 - En Windows, usar la tarea `shell: build` de VS Code o un terminal con g++ disponible
 
-### Compilar con g++
+### Linux: compilación incremental
 ```bash
-g++ -std=c++17 -Wall -Wextra Motor.cpp Combate.cpp Personajes.cpp Loot.cpp Tienda.cpp Utilidades.cpp Monstruos.cpp Monstruos_Data.cpp Habilidades.cpp HabilidadesData.cpp HabilidadesMonstruo.cpp Efectos.cpp Efectos_Data.cpp Armas.cpp Artefactos.cpp Reliquias.cpp ReliquiasDatos.cpp Consumibles.cpp Recursos.cpp CatalogoObjetos.cpp Rng.cpp IO.cpp Zonas.cpp -o Reino
+make -j4
+./build/Debug/outDebug
+```
+
+Make recompila solo los archivos modificados y las unidades que dependan de headers cambiados.
+En VS Code, también puedes usar la tarea `build & run`.
+
+### Compilar directamente con g++
+```bash
+g++ -std=c++17 -Wall -Wextra Motor.cpp Combate.cpp Personajes.cpp Loot.cpp Tienda.cpp Utilidades.cpp Monstruos.cpp Monstruos_Data.cpp Habilidades.cpp HabilidadesData.cpp HabilidadesMonstruo.cpp Efectos.cpp Efectos_Data.cpp Armas.cpp Artefactos.cpp Reliquias.cpp ReliquiasDatos.cpp Consumibles.cpp Recursos.cpp CatalogoObjetos.cpp Rng.cpp IO.cpp Zonas.cpp FasesJefe.cpp Turnojugador.cpp Turnoenemigo.cpp -o Reino
 ```
 
 ### Ejecutar
 ```bash
 ./Reino
 ```
-O usar el archivo `Run.bat` incluido en Windows.
+En Windows, usa la tarea `shell: build` de VS Code.
 
 ---
 

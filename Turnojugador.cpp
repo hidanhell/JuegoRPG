@@ -26,6 +26,7 @@ extern void aplicarEfectoLegendario(const Efecto &efecto, int &hpObjetivo, int a
 bool turnoJugador(Personaje &p, Monstruo &m, int &turnosAbsorcion) {
     bool huidaExitosa = false;
     bool accionValida = false;
+    const int agotamientoAlInicio = p.turnosAgotado;
 
     while (!accionValida && m.hp > 0 && p.hp > 0) {
         cout << "\n--- TU TURNO ---" << endl;
@@ -68,11 +69,6 @@ bool turnoJugador(Personaje &p, Monstruo &m, int &turnosAbsorcion) {
                 if (p.armaEquipada.rareza == Rareza::Elite) {
                     aplicarGritoDelCaido(m, p);
                 }
-                if (p.tieneReliquia("Colmillo de Vampiro")) {
-                    int roboVida = static_cast<int>(static_cast<float>(danoReal) * 0.15f);
-                    p.hp = min(p.hpMax, p.hp + roboVida);
-                    cout << "[RELIQUIA] Recuperas " << roboVida << " HP." << endl;
-                }
             }
 
             // -------------------------------------------------------
@@ -94,6 +90,12 @@ bool turnoJugador(Personaje &p, Monstruo &m, int &turnosAbsorcion) {
                 cout << "[TI] " << p.nombreAtaque << " causa " << danoReal << " de dano." << endl;
             }
 
+            if (!absorbidoPorEscamas && p.tieneReliquia("Colmillo de Vampiro")) {
+                int roboVida = static_cast<int>(static_cast<float>(danoReal) * 0.15f);
+                p.hp = min(p.hpMax, p.hp + roboVida);
+                cout << "[RELIQUIA] Recuperas " << roboVida << " HP." << endl;
+            }
+
             // --- Artefacto: Efecto de estado del arma (solo si el enemigo sigue vivo) ---
             if (p.armaEquipada.efectoId > 0 && m.hp > 0) {
                 if (Rng::get().probabilidad(30)) {
@@ -110,7 +112,7 @@ bool turnoJugador(Personaje &p, Monstruo &m, int &turnosAbsorcion) {
                             bool turnoPerdidoLeg = false;
                             aplicarEfectoLegendario(*efOpt, m.hp, dTotal, p.hp, p.hpMax, turnoPerdidoLeg);
                         } else {
-                            m.efectosActivos.push_back(*efOpt);
+                            agregarEfectoActivo(m.efectosActivos, *efOpt);
                             cout << "[ESTADO] Aplicaste " << efOpt->nombre << "." << endl;
                         }
                     }
@@ -144,11 +146,6 @@ bool turnoJugador(Personaje &p, Monstruo &m, int &turnosAbsorcion) {
             accionValida = true; // El ataque siempre consume el turno
         }
         else if (opc == 2) {
-            // -------------------------------------------------------
-            // Trackeo inactivo
-            // -------------------------------------------------------
-            p.ultimoTurnoAtaco = false;
-
             // -------------------------------------------------------
             // Bloqueo de habilidades por agotamiento
             // -------------------------------------------------------
@@ -191,21 +188,28 @@ bool turnoJugador(Personaje &p, Monstruo &m, int &turnosAbsorcion) {
                             // Validamos si es una Ultimate (IDs 300-399) o Activa normal (IDs 100-199)
                             if (hOpt->tipo == "Ultimate") {
                                 if (puedeUsarUltimate(p)) {
-                                    // FIX: la ultimate consume TODO el recurso actual,
-                                    // no un costo fijo. Antes era gastarRecurso(p, 50).
+                                    // La Ultimate requiere la barra llena y consume todo el recurso.
                                     int costoTotal = p.recursoActual;
                                     if (gastarRecurso(p, costoTotal)) {
                                         ejecutarUltimate(p, m, idSeleccionado);
+                                        p.ultimoTurnoAtaco = false;
                                         accionValida = true;
                                     }
                                 } else {
-                                    cout << "[!] Ya has usado tu Ultimate en esta partida o no cumples los requisitos." << endl;
+                                    if (p.recursoActual < p.recursoMax) {
+                                        cout << "[!] Necesitas llenar tu recurso de clase para usar la Ultimate." << endl;
+                                    } else if (idSeleccionado == 331 && !p.ultimoTurnoAtaco) {
+                                        cout << "[!] Debes usar un ataque basico el turno anterior para cargar esta Ultimate." << endl;
+                                    } else {
+                                        cout << "[!] Ya has usado tu Ultimate o no cumples los requisitos." << endl;
+                                    }
                                 }
                             } else {
                                 // Habilidad activa normal (Costo estándar de recurso: ej. 25)
                                 int costoRecurso = 25;
                                 if (gastarRecurso(p, costoRecurso)) {
                                     ejecutarHabilidad(p, m, idSeleccionado);
+                                    p.ultimoTurnoAtaco = false;
                                     accionValida = true;
                                 }
                             }
@@ -300,7 +304,7 @@ bool turnoJugador(Personaje &p, Monstruo &m, int &turnosAbsorcion) {
                         if (obj.efectoAlUsar > 0 && m.hp > 0) {
                             auto efOpt = obtenerEfectoPorId(obj.efectoAlUsar);
                             if (efOpt) {
-                                m.efectosActivos.push_back(*efOpt);
+                                agregarEfectoActivo(m.efectosActivos, *efOpt);
                                 cout << "[BOMBA] " << m.nombre << " queda afectado por " << efOpt->nombre << "." << endl;
                             }
                         }
@@ -338,5 +342,8 @@ bool turnoJugador(Personaje &p, Monstruo &m, int &turnosAbsorcion) {
         }
     }
 
+    if (accionValida && agotamientoAlInicio > 0 && p.turnosAgotado > 0) {
+        p.turnosAgotado--;
+    }
     return huidaExitosa;
 }

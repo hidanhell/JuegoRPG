@@ -1,13 +1,13 @@
 // =========================================================
 // BLOQUE M: MOTOR PRINCIPAL DEL JUEGO (v1.4)
 // =========================================================
-#include "utilidades.h"
+#include "Utilidades.h"
 #include "IO.h"
 #include "SaveGame.h"
-#include "personajes.h"
-#include "combate.h"       
-#include "loot.h"
-#include "tienda.h"
+#include "Personajes.h"
+#include "Combate.h"
+#include "Loot.h"
+#include "Tienda.h"
 #include "Rng.h"
 #include <iostream>
 #include <map>
@@ -15,7 +15,7 @@
 #include <filesystem>
 #include <chrono>
 #include <iomanip>
-#include "catalogoObjetos.h"
+#include "CatalogoObjetos.h"
 #include "Armas.h"
 #include "Artefactos.h" 
 #include "Reliquias.h"

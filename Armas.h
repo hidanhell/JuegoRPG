@@ -18,11 +18,11 @@ struct Arma {
 
     // Constructor
     Arma(int i = 0,
-         const std::string& n = "-",
+         std::string n = "-",
          int p = 0,
-         const std::string& r = "Comun",
+         std::string r = "Comun",
          int eId = 0,
-         const std::string& c = "Ninguno",
+         std::string c = "Ninguno",
          int z = 0,
          int pr = 0,
          int hId = 0);
@@ -30,4 +30,4 @@ struct Arma {
     void mostrarInfo() const;
 };
 
-#endif
+#endif // ARMAS_H

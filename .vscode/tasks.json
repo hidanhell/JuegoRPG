@@ -32,19 +32,26 @@
         "Rng.cpp",
         "IO.cpp",
         "Zonas.cpp",
+        "FasesJefe.cpp",
+        "Turnojugador.cpp",
+        "Turnoenemigo.cpp",
         "-o",
-        "${workspaceFolder}/build/Debug/outDebug.exe"
+        "${workspaceFolder}/build/Debug/outDebug"
       ],
       "group": {
         "kind": "build",
         "isDefault": true
+      },
+      "linux": {
+        "command": "make",
+        "args": ["-j4"]
       },
       "problemMatcher": ["$gcc"]
     },
     {
       "label": "build & run",
       "type": "shell",
-      "command": "${workspaceFolder}/build/Debug/outDebug.exe",
+      "command": "${workspaceFolder}/build/Debug/outDebug",
       "dependsOn": "build",
       "presentation": {
         "echo": true,
