@@ -179,85 +179,111 @@ int main() {
             }
         }
         else if (input == 'p') {
-            limpiarPantalla();
+            bool verEstado = true;
+            while (verEstado) {
+                limpiarPantalla();
+                mostrarCabecera("ESTADISTICAS DE " + p.nombre);
 
-            mostrarCabecera("STATUS DE " + p.nombre);
-
-            // Clase y subclase
-            cout << "Clase: " << claseToString(p.clase);
-            if (p.tieneSubclase15) {
-                int idSubclase = p.habilidadesIds.back();
-                if (auto h = obtenerHabilidadPorId(idSubclase)) cout << " → " << h->nombre;
-            }
-            cout << "\nNivel: " << p.nivel 
-                 << " | EXP: " << p.exp << "/" << (p.nivel * 50) 
-                 << " | Oro: " << p.oro << "\n";
-
-            // Atributos base
-            cout << "\n=============== Atributos Base ===============\n";
-            cout << "Fuerza: " << p.fuerza 
-                 << " | Destreza: " << p.destreza 
-                 << " | Inteligencia: " << p.inteligencia 
-                 << " | Vitalidad: " << p.vitalidad << "\n";
-
-            // Estadísticas de combate
-            cout << "\n=============== Estadisticas de Combate ===============\n";
-            mostrarBarraHP(p.hp, p.hpMax);
-            cout << "Ataque: " << p.ataqueBase 
-                 << " | Defensa: " << p.defensaBase 
-                 << " | Velocidad: " << p.velocidadBase 
-                 << " | Critico: " << p.bonusCritico << "%\n";
-
-            // Equipamiento
-            cout << "\n=============== Equipamiento ===============\n";
-            cout << "Arma: " << p.armaEquipada.nombre 
-                 << " (+" << p.armaEquipada.poder << " ATQ)";
-            if (auto ef = obtenerEfectoPorId(p.armaEquipada.efectoId))
-                cout << " [Efecto: " << ef->nombre << "]";
-            else
-                cout << " [Sin efecto]";
-
-            cout << "\nArtefacto: " << p.artefactoEquipado.nombre
-                 << " (+" << p.artefactoEquipado.defensa << " DEF)";
-            if (auto ef = obtenerEfectoPorId(p.artefactoEquipado.efectoId))
-                cout << " [Efecto: " << ef->nombre << "]";
-            else
-                cout << " [Sin efecto]";
-
-            // Inventario abreviado
-            cout << "\n\n=============== Inventario (max 10) ===============\n";
-            if (p.inventario.empty()) cout << "Vacio\n";
-            else {
-                map<string,string> abrevs = {
-                    {"Pocion Baja","PB"}, {"Pocion Media","PM"}, {"Pocion Alta","PA"},
-                    {"Elixir de Caparazon","EC"}, {"Elixir de Furia","EF"}, {"Elixir de Vida","EV"}
-                };
-                map<string,int> conteo;
-                for (auto &it : p.inventario) {
-                    if (abrevs.count(it.nombre)) conteo[abrevs[it.nombre]]++;
-                    else conteo[it.nombre]++;
+                cout << "Clase: " << claseToString(p.clase);
+                for (int id : p.habilidadesIds) {
+                    if (id >= 201 && id <= 222) {
+                        if (auto subclase = obtenerHabilidadPorId(id)) cout << " | Subclase: " << subclase->nombre;
+                        break;
+                    }
                 }
-                bool primero = true;
-                for (auto &kv : conteo) {
-                    if (!primero) cout << " | ";
-                    cout << kv.first << " x" << kv.second;
-                    primero = false;
+                const int expNecesaria = (p.nivel * (p.nivel + 1) / 2) * 50;
+                cout << "\nNivel: " << p.nivel
+                     << " | EXP: " << p.exp << "/" << expNecesaria
+                     << " | Oro: " << p.oro << "\n";
+
+                cout << "\n=============== Atributos ===============\n";
+                cout << "Fuerza: " << p.fuerza
+                     << " | Destreza: " << p.destreza
+                     << " | Inteligencia: " << p.inteligencia
+                     << " | Vitalidad: " << p.vitalidad << "\n";
+
+                cout << "\n=============== Combate ===============\n";
+                mostrarBarraHP(p.hp, p.hpMax);
+                cout << "Ataque: " << p.ataqueBase
+                     << " | Defensa: " << p.defensaBase
+                     << " | Velocidad: " << p.velocidadBase
+                     << " | Critico: " << p.bonusCritico << "%\n";
+                cout << "\n(E) Ver equipo, reliquias e inventario | (0) Volver\nSeleccion: ";
+
+                char opcion;
+                if (!(cin >> opcion)) {
+                    limpiarBuffer();
+                    verEstado = false;
+                    continue;
                 }
-                cout << "\n";
+                if (tolower(opcion) != 'e') {
+                    verEstado = false;
+                    continue;
+                }
+
+                limpiarPantalla();
+                mostrarCabecera("EQUIPO, RELIQUIAS E INVENTARIO");
+
+                cout << "\n=============== Equipo ===============\n";
+                cout << "Arma: " << p.armaEquipada.nombre
+                     << " | Poder: +" << p.armaEquipada.poder
+                     << " | Rareza: " << rarezaToString(p.armaEquipada.rareza) << "\n";
+                if (auto efecto = obtenerEfectoPorId(p.armaEquipada.efectoId)) {
+                    cout << "Efecto de arma: " << efecto->nombre << " (" << efecto->duracion
+                         << " turnos, intensidad " << efecto->intensidad << ")\n";
+                } else {
+                    cout << "Efecto de arma: ninguno\n";
+                }
+                if (p.armaEquipada.habilidadId != 0) {
+                    if (auto habilidad = obtenerHabilidadPorId(p.armaEquipada.habilidadId)) {
+                        cout << "Habilidad de arma: " << habilidad->nombre << " - " << habilidad->descripcion << "\n";
+                    }
+                }
+
+                cout << "\nArtefacto: " << p.artefactoEquipado.nombre
+                     << " | Defensa: +" << p.artefactoEquipado.defensa
+                     << " | Rareza: " << rarezaToString(p.artefactoEquipado.rareza) << "\n";
+                if (auto efecto = obtenerEfectoPorId(p.artefactoEquipado.efectoId)) {
+                    cout << "Efecto de artefacto: " << efecto->nombre << " (" << efecto->duracion
+                         << " turnos, intensidad " << efecto->intensidad << ")\n";
+                } else {
+                    cout << "Efecto de artefacto: ninguno\n";
+                }
+
+                cout << "\n=============== Reliquias ===============\n";
+                if (p.reliquias.empty()) {
+                    cout << "Ninguna\n";
+                } else {
+                    for (const auto& nombreReliquia : p.reliquias) {
+                        const Reliquia* encontrada = nullptr;
+                        for (const auto& reliquia : listaReliquias) {
+                            if (reliquia.nombre == nombreReliquia) {
+                                encontrada = &reliquia;
+                                break;
+                            }
+                        }
+                        if (encontrada) {
+                            cout << "- " << encontrada->nombre << " [" << rarezaToString(encontrada->rareza)
+                                 << "]\n  " << encontrada->efecto << "\n";
+                        } else {
+                            cout << "- " << nombreReliquia << " [sin descripcion en el catalogo]\n";
+                        }
+                    }
+                }
+
+                cout << "\n=============== Inventario (" << p.inventario.size() << "/10) ===============\n";
+                if (p.inventario.empty()) {
+                    cout << "Vacio\n";
+                } else {
+                    for (const auto& consumible : p.inventario) {
+                        cout << "- " << consumible.nombre << " - " << consumible.descripcion << "\n";
+                    }
+                }
+
+                cout << "\nPresiona ENTER para volver a las estadisticas...";
+                limpiarBuffer();
+                cin.get();
             }
-
-            // Reliquias
-            cout << "\n=============== Reliquias ===============\n";
-            if (p.reliquias.empty()) cout << "Ninguna\n";
-            else for (string r : p.reliquias) cout << "- " << r << "\n";
-
-            // Efectos de estado
-            cout << "\n=============== Efectos de Estado ===============\n";
-            if (p.efectos.empty()) cout << "Ninguno\n";
-            else for (auto &e : p.efectos) cout << e.nombre << " (" << e.duracion << " turnos)\n";
-
-            cout << "\nPresiona ENTER para volver...";
-            limpiarBuffer(); cin.get();
         }
         else if (input == 'g') {
             limpiarPantalla();

@@ -7,6 +7,11 @@
 
 struct Personaje;
 
+enum class ModoMusica : int {
+    Silencio = 0,
+    Combate = 1
+};
+
 // =========================================================
 // SERVICE LOCATOR DE I/O (Infraestructura)
 // =========================================================
@@ -18,6 +23,8 @@ namespace IO {
     IEntrada&      entrada();
     void establecerRender(IRenderizador* instancia);
     void establecerEntrada(IEntrada* instancia);
+    int modoMusicaActual();
+    void establecerModoMusica(ModoMusica modo);
 
     // Directorio base para guardar/cargar partidas. Por defecto "savegames"
     // (relativo al CWD, valido en desktop). En Android el CWD del proceso no

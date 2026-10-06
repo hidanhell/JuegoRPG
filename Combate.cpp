@@ -1,4 +1,5 @@
 #include "Combate.h"
+#include "IO.h"
 #include "Utilidades.h"
 #include "Loot.h"
 #include "HabilidadesMonstruo.h"
@@ -177,6 +178,7 @@ void resolverFinDeCombate(Personaje &p, Monstruo &m, int y, bool huidaExitosa, b
 
 // Bucle principal de combate
 void iniciarCombate(Personaje &p, int y) {
+    IO::establecerModoMusica(ModoMusica::Combate);
     int turnosAbsorcion = 0;
     p.ultimoTurnoAtaco = false;
     p.turnosAgotado = 0;
@@ -272,4 +274,5 @@ void iniciarCombate(Personaje &p, int y) {
     }
 
     resolverFinDeCombate(p, m, y, huidaExitosa, monstruoHuyo);
+    IO::establecerModoMusica(ModoMusica::Silencio);
 }

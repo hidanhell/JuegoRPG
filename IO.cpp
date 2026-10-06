@@ -8,6 +8,15 @@
 #include <filesystem>
 #include <cctype>
 #include <algorithm>
+#include <atomic>
+#if defined(__linux__) && !defined(ANDROID_BUILD)
+#include <cerrno>
+#include <fcntl.h>
+#include <signal.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <unistd.h>
+#endif
 #include "Personajes.h"
 #include "Consumibles.h"
 #include "Recursos.h"
@@ -117,11 +126,74 @@ static IEntrada*& entradaActualRef() {
     return entradaActual;
 }
 
+#if defined(__linux__) && !defined(ANDROID_BUILD)
+static pid_t reproductorCombatePid = 0;
+static bool limpiezaMusicaRegistrada = false;
+
+static void detenerMusicaCombate() {
+    if (reproductorCombatePid <= 0) return;
+    kill(reproductorCombatePid, SIGTERM);
+    while (waitpid(reproductorCombatePid, nullptr, 0) < 0 && errno == EINTR) {}
+    reproductorCombatePid = 0;
+}
+
+static void iniciarMusicaCombate() {
+    if (reproductorCombatePid > 0) {
+        if (waitpid(reproductorCombatePid, nullptr, WNOHANG) == 0) return;
+        reproductorCombatePid = 0;
+    }
+
+    const std::filesystem::path archivo{"When_the_Throne_Falls.mp3"};
+    std::error_code error;
+    if (!std::filesystem::exists(archivo, error) || error) return;
+    const std::filesystem::path ruta = std::filesystem::absolute(archivo, error);
+    if (error) return;
+
+    const pid_t pid = fork();
+    if (pid == 0) {
+        const int salidaNula = open("/dev/null", O_WRONLY);
+        if (salidaNula >= 0) {
+            dup2(salidaNula, STDOUT_FILENO);
+            dup2(salidaNula, STDERR_FILENO);
+            close(salidaNula);
+        }
+        execlp("cvlc", "cvlc", "--intf", "dummy", "--no-video", "--quiet", "--loop", ruta.c_str(), static_cast<char*>(nullptr));
+        _exit(127);
+    }
+
+    if (pid > 0) {
+        reproductorCombatePid = pid;
+        if (!limpiezaMusicaRegistrada) {
+            std::atexit(detenerMusicaCombate);
+            limpiezaMusicaRegistrada = true;
+        }
+    }
+}
+#endif
+
 IRenderizador& IO::render()  { return *renderActualRef(); }
 IEntrada&      IO::entrada() { return *entradaActualRef(); }
 
 void IO::establecerRender(IRenderizador* i)  { renderActualRef()  = i ? i : &defaultRenderInstancia(); }
 void IO::establecerEntrada(IEntrada* i)      { entradaActualRef() = i ? i : &defaultEntradaInstancia(); }
+static std::atomic<int>& modoMusicaActualRef() {
+    static std::atomic<int> modo{static_cast<int>(ModoMusica::Silencio)};
+    return modo;
+}
+int IO::modoMusicaActual() { return modoMusicaActualRef().load(std::memory_order_acquire); }
+void IO::establecerModoMusica(ModoMusica modo) {
+    const int valor = static_cast<int>(modo);
+    const int anterior = modoMusicaActualRef().exchange(valor, std::memory_order_acq_rel);
+#if defined(__linux__) && !defined(ANDROID_BUILD)
+    if (valor == static_cast<int>(ModoMusica::Combate) && anterior != valor) {
+        iniciarMusicaCombate();
+    } else if (valor == static_cast<int>(ModoMusica::Silencio)) {
+        detenerMusicaCombate();
+    }
+#else
+    (void)anterior;
+#endif
+}
 
 static std::string dirGuardadoActual = "savegames";
 

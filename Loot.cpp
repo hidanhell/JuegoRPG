@@ -81,10 +81,14 @@ void gestionarLoot(Personaje &p, int y, bool raro)
                 nW.poder = static_cast<int>(static_cast<float>(nW.poder) * 1.15f + 0.5f);
             }
 
-            cout << "[!] HALLAZGO: " << nW.nombre
+              const int diferenciaArma = nW.poder - p.armaEquipada.poder;
+              cout << "[!] HALLAZGO: " << nW.nombre
                  << " (Poder: " << nW.poder << ")"
                  << " [Equipada: " << p.armaEquipada.nombre
-                 << " - " << p.armaEquipada.poder << "]" << endl;
+                  << " - " << p.armaEquipada.poder << "] ";
+              if (diferenciaArma > 0) cout << "[MEJORA +" << diferenciaArma << " ATQ]" << endl;
+              else if (diferenciaArma < 0) cout << "[INFERIOR " << diferenciaArma << " ATQ]" << endl;
+              else cout << "[MISMO PODER]" << endl;
             cout << "Equipar? (S/N): ";
             char c = IO::entrada().leerTecla();
             if (tolower(c) == 's') p.armaEquipada = nW;
@@ -123,10 +127,14 @@ void gestionarLoot(Personaje &p, int y, bool raro)
                     nA.defensa = static_cast<int>(static_cast<float>(nA.defensa) * 1.15f + 0.5f);
                 }
 
-                cout << "[!] HALLAZGO: " << nA.nombre
+                 const int diferenciaArtefacto = nA.defensa - p.artefactoEquipado.defensa;
+                 cout << "[!] HALLAZGO: " << nA.nombre
                      << " (Def: +" << nA.defensa << ")"
                      << " [Equipado: " << p.artefactoEquipado.nombre
-                     << " - " << p.artefactoEquipado.defensa << "]" << endl;
+                     << " - " << p.artefactoEquipado.defensa << "] ";
+                 if (diferenciaArtefacto > 0) cout << "[MEJORA +" << diferenciaArtefacto << " DEF]" << endl;
+                 else if (diferenciaArtefacto < 0) cout << "[INFERIOR " << diferenciaArtefacto << " DEF]" << endl;
+                 else cout << "[MISMA DEFENSA]" << endl;
                 cout << "Equipar? (S/N): ";
                 char c = IO::entrada().leerTecla();
                 if (tolower(c) == 's') {
